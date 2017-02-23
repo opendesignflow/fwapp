@@ -1,0 +1,7 @@
+$(function() {
+	
+
+	    $('.datatable').DataTable();
+
+	
+});
