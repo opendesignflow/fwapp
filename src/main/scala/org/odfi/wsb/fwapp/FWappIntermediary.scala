@@ -36,7 +36,7 @@ class FWappIntermediary(urlPath: String) extends HTTPPathIntermediary(urlPath) w
   }
 
   def getIntermediaryFor(str: String) = {
-    this.intermediaries.collect { case fw: FWappIntermediary => fw }.find { iw => iw.basePath == str }
+    this.intermediaries.collect { case fw: FWappIntermediary => fw }.find { iw => iw.basePath == str || iw.basePath == "/"+str }
   }
   
   /**
