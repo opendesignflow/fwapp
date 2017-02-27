@@ -8,19 +8,22 @@ import com.idyria.osi.vui.html.Textarea
 import scala.reflect.ClassTag
 import com.idyria.osi.ooxoo.core.buffers.structural.AbstractDataBuffer
 
-import scala.reflect.macros.blackbox
-import scala.language.experimental.macros
+//import scala.reflect.macros.blackbox
+//import scala.language.experimental.macros
 
-trait FWAppValueBindingView extends FWAppFrameworkView {
+import fmacros.FWAppMacros
+import fmacros.FWAppValueBindingViewTrait
+ 
+trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingViewTrait {
 
   def createJSBindAction(code: String, render: String = "none") = {
     s"fwapp.actions.bindValue(this,'${getViewPath}?_action=${code}',{_render:'none'})"
   }
 
   import reflect.runtime.universe._
-  implicit def closureToExpr[V](cl: V => Any): Expr[V => Any] = {
+  /*implicit def closureToExpr[V](cl: V => Any): Expr[V => Any] = {
     reify(cl)
-  }
+  }*/
 
   /*def bindValueAuto[V](exp: Expr[V => Any])(implicit tag: ClassTag[V]) = {
     // Element 0 in expression is the input arg
@@ -39,8 +42,8 @@ trait FWAppValueBindingView extends FWAppFrameworkView {
   /*def bindValue[V](cl: V => Any)(implicit tag: ClassTag[V]): Unit = {
     bindValueWithName[V]("value", cl)
   }*/
-  
-  def bindValue[V](expr: V => Any): Unit  = macro FWAppValueBindingView.bindValueImpl[V]
+   
+  //def bindValue[V](expr: V => Any): Unit  = macro FWAppMacros.bindValueImpl[V]
 
   def bindValueWithName[V](name: String, cl: V => Any)(implicit tag: ClassTag[V]): Unit = {
 
@@ -197,6 +200,7 @@ trait FWAppValueBindingView extends FWAppFrameworkView {
 
 }
 
+/*
 object FWAppValueBindingView {
 
   def bindValueImpl[V](c: blackbox.Context)(expr: c.Expr[V => Any]): c.Expr[Unit] = {
@@ -221,4 +225,4 @@ object FWAppValueBindingView {
     c.Expr(q"""bindValueWithName($inputName,${reify(expr.splice)})""")
    // c.Expr(q"""bindValueWithName[V]($inputName,${reify(expr.splice)})""")
   }
-}
+}*/

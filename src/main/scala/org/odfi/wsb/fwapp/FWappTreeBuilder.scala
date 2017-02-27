@@ -9,6 +9,8 @@ import com.idyria.osi.wsb.webapp.http.message.HTTPIntermediary
 import org.odfi.wsb.fwapp.errors.Handle404
 import java.net.URLEncoder
 
+import scala.language.implicitConversions
+
 trait FWappTreeBuilder extends TLogSource {
 
   def reset = {

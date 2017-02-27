@@ -15,7 +15,7 @@ trait FWAppTempBufferView extends FWAppValueBindingView {
   def inputToTempBuffer[VT <: Any](name: String, value: String)(cl: => Any)(implicit tag: ClassTag[VT]) = {
 
     putToTempBuffer(name, value)
-
+ 
     var node = input {
       +@("value" -> value.toString)
       bindValue {

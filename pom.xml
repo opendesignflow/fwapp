@@ -10,11 +10,34 @@
 	<parent>
 		<groupId>org.odfi</groupId>
 		<artifactId>superpom-scala</artifactId>
-		<version>2.12.1.r7</version>
+		<version>2.12.1.r8</version>
 	</parent>
 
 	<build>
 		<plugins>
+
+			<plugin>
+				<groupId>net.alchim31.maven</groupId>
+				<artifactId>scala-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>macro</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<recompileMode>all</recompileMode>
+                			<!--<useZincServer>false</useZincServer>-->
+						  <excludes>
+						      <exclude>**/org/odfi/wsb/fwapp/**/*.scala</exclude>
+						  </excludes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>

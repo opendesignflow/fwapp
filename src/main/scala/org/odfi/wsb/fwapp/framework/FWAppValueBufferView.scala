@@ -16,7 +16,7 @@ trait FWAppValueBufferView extends FWAppValueBindingView {
       v: Int =>
         vb.set(v)
     }
-
+  
   }
 
   /**
