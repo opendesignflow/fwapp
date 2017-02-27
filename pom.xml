@@ -52,7 +52,7 @@
 						<configuration>
 							<sources>
 								<source>${project.build.directory}/generated-sources/scala</source>
-								<source>src/examples/scala</source>
+<!-- 								<source>src/examples/scala</source> -->
 							</sources>
 						</configuration>
 					</execution>
@@ -64,7 +64,7 @@
 						<configuration>
 							<sources>
 								<source>${project.build.directory}/generated-sources/scala</source>
-								<source>src/examples/scala</source>
+<!-- 								<source>src/examples/scala</source> -->
 							</sources>
 						</configuration>
 					</execution>
