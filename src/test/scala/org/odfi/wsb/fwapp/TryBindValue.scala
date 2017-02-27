@@ -6,12 +6,12 @@ object TryBindValue extends App   {
   
   val vb = new FWAppValueBindingView {
     
-    this.bindValueAuto {
+    this.bindValue {
       va : Boolean => 
         
     }
     
-    this.bindValueAuto[Integer] {
+    this.bindValue[Integer] {
       vb  => 
         
     }

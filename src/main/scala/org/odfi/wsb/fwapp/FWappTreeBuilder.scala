@@ -16,7 +16,7 @@ trait FWappTreeBuilder extends TLogSource {
     this.lastCurrentIntermediaryStack.clear()
   }
 
-  class IWrapper(val fwappIntermediary: FWappIntermediary) {
+  class IWrapper[I <: FWappIntermediary](val fwappIntermediary: I) {
 
     def ::(server: FWappApp) = {
       server.mergeTree(fwappIntermediary)
@@ -26,23 +26,23 @@ trait FWappTreeBuilder extends TLogSource {
     /**
      * Call closure and come back to previous state
      */
-    def is(cl: => Unit) : IWrapper = {
+    def is(cl: => Unit): IWrapper[I] = {
       onIntermediary(this.fwappIntermediary) {
         cl
       }
-     // cl
+      // cl
       fwappIntermediary.@->("updated")
       stackBackToLastIntermediary
       this
     }
-    
-    def view[V <: FWappView](v: Class[V]) : IWrapper = {
+
+    def view[V <: FWappView](v: Class[V]): IWrapper[I] = {
       fwappIntermediary.htmlView = v
       stackBackToLastIntermediary
       this
     }
 
-    def uses(tree: IWrapper) = {
+    /*  def uses(tree: IWrapper[I]) : I = {
       
       //-- Derive Resource first, to make sure insertion in Intermediary tree can work with resources
       tree.fwappIntermediary.deriveFrom(this.fwappIntermediary.parentIntermediary.asInstanceOf[FWappIntermediary])
@@ -58,20 +58,37 @@ trait FWappTreeBuilder extends TLogSource {
       
      // this.fwappIntermediary <= tree.fwappIntermediary
       stackBackToLastIntermediary
-      tree
+      tree.fwappIntermediary
+    }*/
+
+    def uses[I <: FWappIntermediary](i: I): I = {
+
+      //-- Derive Resource first, to make sure insertion in Intermediary tree can work with resources
+      i.deriveFrom(this.fwappIntermediary.parentIntermediary.asInstanceOf[FWappIntermediary])
+
+      //-- Replace local intermediary with the one being used
+      this.fwappIntermediary.parentIntermediary <= i
+      this.fwappIntermediary.parentIntermediary -= this.fwappIntermediary
+
+      //-- Noew intermediary uses path
+      i.basePath = this.fwappIntermediary.basePath
+
+      // this.fwappIntermediary <= tree.fwappIntermediary
+      stackBackToLastIntermediary
+      i
     }
 
   }
 
   // Stacks
   //--------
-  var fwappIntermediariesStack = ArrayStack[IWrapper]()
-  var lastCurrentIntermediaryStack = ArrayStack[IWrapper]()
+  var fwappIntermediariesStack = ArrayStack[IWrapper[FWappIntermediary]]()
+  var lastCurrentIntermediaryStack = ArrayStack[IWrapper[FWappIntermediary]]()
 
   //-- Set Top Intermediary to new "/" if necessary
   this.isInstanceOf[FWappIntermediary] match {
-    case true => 
-      
+    case true =>
+
       println("Tree builder is an Intermediary, so add a wrapper for this")
       fwappIntermediariesStack.push(new IWrapper(this.asInstanceOf[FWappIntermediary]))
     case false =>
@@ -79,11 +96,11 @@ trait FWappTreeBuilder extends TLogSource {
   }
 
   //def setBuild
-  def setTopBuildIntermediary(i:FWappIntermediary) = {
+  def setTopBuildIntermediary(i: FWappIntermediary) = {
     fwappIntermediariesStack.clear()
     fwappIntermediariesStack.push(new IWrapper(i))
   }
-  
+
   /**
    * Go back to last top to ensure consistency after adding a sub tree
    */
@@ -123,7 +140,7 @@ trait FWappTreeBuilder extends TLogSource {
 
     //-- Split path and create tree
     //var currentIntermediaryStack = ArrayStack[IWrapper]()
-    path.replaceAll("/+", "/").split("/").filter(_.trim.length() > 0).map(p =>  URLEncoder.encode(p,"UTF8")).foreach {
+    path.replaceAll("/+", "/").split("/").filter(_.trim.length() > 0).map(p => URLEncoder.encode(p, "UTF8")).foreach {
       pathComponent =>
 
         //-- Look for path component in current
@@ -176,19 +193,22 @@ trait FWappTreeBuilder extends TLogSource {
 
   // Views
   //--------------
+  def `the view is`[V <: FWappView](v: Class[V]) = {
+
+  }
   def view[V <: FWappView](v: Class[V]) = {
 
     this.fwappIntermediariesStack.head.fwappIntermediary.htmlView = v
 
   }
-  
+
   // Intermediaries
   //-------------------
-  def useIntermediary(i:HTTPIntermediary) = {
-    logFine[FWappTreeBuilder](s"Adding intermediary $i to: "+this.fwappIntermediariesStack.head.fwappIntermediary.fullURLPath)
+  def useIntermediary(i: HTTPIntermediary) = {
+    logFine[FWappTreeBuilder](s"Adding intermediary $i to: " + this.fwappIntermediariesStack.head.fwappIntermediary.fullURLPath)
     this.fwappIntermediariesStack.head.fwappIntermediary <= i
   }
-  
+
   def add404Intermediary = {
     useIntermediary(new Handle404)
   }
@@ -196,14 +216,14 @@ trait FWappTreeBuilder extends TLogSource {
   def withCurrentIntermediary(cl: FWappIntermediary => Any) = {
     cl(this.fwappIntermediariesStack.head.fwappIntermediary)
   }
-  
-  def onIntermediary(i:FWappIntermediary)(cl: =>Any) = {
+
+  def onIntermediary(i: FWappIntermediary)(cl: => Any) = {
     lastCurrentIntermediaryStack.push(fwappIntermediariesStack.head)
     this.fwappIntermediariesStack.push(new IWrapper(i))
     cl
     stackBackToLastIntermediary
   }
-  
+
   // Conversions
   //------------------
 
@@ -211,8 +231,8 @@ trait FWappTreeBuilder extends TLogSource {
     this.path(path)
   }
 
-  implicit def fwintermediaryToIntermediaryWrapper(i: FWappIntermediary) = {
-    new IWrapper(i)
+  implicit def fwintermediaryToIntermediaryWrapper[I <: FWappIntermediary](i: I) = {
+    new IWrapper[I](i)
   }
 
 }

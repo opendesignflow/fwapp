@@ -34,11 +34,13 @@ trait FWAppValueBindingView extends FWAppFrameworkView {
    // bindValueWithName[V](inputName,exp.splice)
   }*/
 
-  def bindValueAuto[V](expr: V => Any): Unit = macro FWAppValueBindingView.bindValueAutoImpl[V]
+ // def bindValueAuto[V](expr: V => Any): Unit = macro FWAppValueBindingView.bindValueAutoImpl[V]
 
-  def bindValue[V](cl: V => Any)(implicit tag: ClassTag[V]): Unit = {
+  /*def bindValue[V](cl: V => Any)(implicit tag: ClassTag[V]): Unit = {
     bindValueWithName[V]("value", cl)
-  }
+  }*/
+  
+  def bindValue[V](expr: V => Any): Unit  = macro FWAppValueBindingView.bindValueImpl[V]
 
   def bindValueWithName[V](name: String, cl: V => Any)(implicit tag: ClassTag[V]): Unit = {
 
@@ -191,54 +193,13 @@ trait FWAppValueBindingView extends FWAppFrameworkView {
 
   }
 
-  /**
-   * BindValue with Buffers
-   */
-  def bindBufferValue(vb: IntegerBuffer): Unit = {
-
-    +@("value" -> vb.toString())
-    this.bindValue {
-      v: Int =>
-        vb.set(v)
-    }
-
-  }
-
-  /**
-   * BindValue with Buffers
-   */
-  def bindBufferValue(vb: XSDStringBuffer): Unit = {
-
-    +@("value" -> vb.toString())
-    this.bindValue {
-      v: String =>
-        vb.data = v
-
-    }
-
-  }
-
-  def bindBufferValue(vb: BooleanBuffer): Unit = {
-
-    vb.data.booleanValue() match {
-      case true =>
-        +@("checked" -> "true")
-      case false =>
-    }
-
-    this.bindValue {
-      v: Boolean =>
-        vb.data = v
-
-    }
-
-  }
+  
 
 }
 
 object FWAppValueBindingView {
 
-  def bindValueAutoImpl[V](c: blackbox.Context)(expr: c.Expr[V => Any]): c.Expr[Unit] = {
+  def bindValueImpl[V](c: blackbox.Context)(expr: c.Expr[V => Any]): c.Expr[Unit] = {
     import c.universe._
 
     // Element 0 in expression is the input arg

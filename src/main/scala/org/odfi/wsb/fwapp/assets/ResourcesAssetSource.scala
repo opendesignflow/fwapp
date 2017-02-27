@@ -15,7 +15,7 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
   name = "Simple File Resources"
 
   //-- Accept all requests, appart from error containing ones
-  this.acceptAllDown
+  //this.acceptAllDown
   acceptDown[HTTPRequest] { 
     message =>
     
@@ -70,11 +70,11 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
     //-- Gather file sources
     var allFileSources = this.fileSources ::: ResourcesAssetSource.fileSources
 
-    logFine[ResourcesAssetSource](s"**** Searching resource in : ${fileSources}")
+    logFine[ResourcesAssetSource](s"**** Searching resource $path in : ${fileSources}")
 
     var res: Option[URL] = None
     // Try class Loader and stanadard file
-    logFine[ResourcesAssetSource](s"**** Searching as Resource: ${extractedPath}")
+    logFine[ResourcesAssetSource](s"**** Searching $path as Resource: ${extractedPath}")
     
     
     allFileSources.find {

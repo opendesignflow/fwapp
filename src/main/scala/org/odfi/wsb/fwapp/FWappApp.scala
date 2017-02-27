@@ -84,6 +84,10 @@ trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
     //AssetsManager
     this.engine.lStart
   }
+  
+  this.onStop {
+    this.engine.lStop
+  }
 
   this.onClean {
     //println("Removing from processing")
