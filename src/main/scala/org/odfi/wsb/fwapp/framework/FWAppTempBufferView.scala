@@ -17,7 +17,7 @@ trait FWAppTempBufferView extends FWAppValueBindingView {
     putToTempBuffer(name, value)
  
     var node = input {
-      +@("value" -> value.toString)
+      +@("value" -> value.toString)    
       bindValue {
         v: VT =>
           v.toString match {
@@ -42,19 +42,7 @@ trait FWAppTempBufferView extends FWAppValueBindingView {
 
     //-- Create UI
     inputToTempBuffer[VT](name, actualValue.toString)(cl)
-    /*var node = input {
-      +@("value" -> actualValue.toString)
-      bindValue {
-        v: VT =>
-          v.toString match {
-            case "" => tempBuffer = tempBuffer - name
-            case _ => tempBuffer = tempBuffer.updated(name, v)
-          }
 
-      }
-    }
-    switchToNode(node, cl)*/
-    //node
   }
 
   /**

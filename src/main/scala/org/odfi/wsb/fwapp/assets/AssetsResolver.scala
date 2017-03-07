@@ -24,10 +24,10 @@ class AssetsResolver(path: String = "/") extends FWappIntermediary(path) {
   this.onNewParentIntermediary {
     println("Assets Resolver, add to application")
     this.findParentOfType[Site]  match {
-      case Some(app) =>
-        println("Found: "+app)
+      case Some(app) if (app.assetsResolver.isEmpty) =>
+        println("Found app with no resolver: "+app)
         app.assetsResolver = Some(this)
-      case None => 
+      case other => 
     }
     /*this.findUpchainResource[FWappApp] match {
       case Some(app) =>
@@ -39,7 +39,7 @@ class AssetsResolver(path: String = "/") extends FWappIntermediary(path) {
   
   def findAssetsSource(name:String) = {
     this.intermediaries.collectFirst {
-      case s : AssetsSource if (s.basePath=="/"+name) =>
+      case s : AssetsSource if (s.basePath==("/"+name).replaceAll("//+", "/")) =>
         s
       
     }

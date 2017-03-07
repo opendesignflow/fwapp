@@ -86,10 +86,11 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
         logFine[ResourcesAssetSource](s"**** Searching as Resource: ${resourcePath}")
         Thread.currentThread().getContextClassLoader.getResource(resourcePath) match {
           case null => 
-            logFine[ResourcesAssetSource](s"**** Searching as File: ${filePath}")
+            logFine[ResourcesAssetSource](s"**** Searching as File: ${filePath} -> ${filePath.canRead()}")
             filePath.exists() match {
               case true => 
-                res = Some(filePath.toURI().toURL()); found=true;
+                res = Some(filePath.toURI().toURL()); 
+                found=true;
               case false => 
             }
           case other => res = Some(other); found=true;

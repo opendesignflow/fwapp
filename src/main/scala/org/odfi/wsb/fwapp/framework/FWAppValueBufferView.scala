@@ -12,6 +12,7 @@ trait FWAppValueBufferView extends FWAppValueBindingView {
   def bindBufferValue(vb: IntegerBuffer): Unit = {
 
     +@("value" -> vb.toString())
+    
     this.bindValue {
       v: Int =>
         vb.set(v)
@@ -28,7 +29,7 @@ trait FWAppValueBufferView extends FWAppValueBindingView {
     this.bindValue {
       v: String =>
         vb.data = v
-
+        
     }
 
   }

@@ -18,6 +18,13 @@ fwapp.actions = {
 		 */
 		// Look for form
 		//-----------
+		$(Object.keys(sendData)).each(function(i,e) {
+			
+			console.log("Found send data: "+e);
+			path = path+"&"+e+"="+sendData[e];
+			
+		});
+		
 		if ($(sender).parents('form').length) {
 			
 			var parentForm = $(sender).parents('form');
@@ -41,7 +48,7 @@ fwapp.actions = {
 			fwapp.ui.waitStart(sender);
 		}
 		
-		var deffered = $.get(path, sendData);
+		var deffered = $.get(path);
 		deffered.done(function(data) {
 
 			console.log("Done..." + data.responseText);
@@ -107,11 +114,11 @@ fwapp.actions = {
 		} else {
 			var value = elt.val();
 		}
-		sendData.value = encodeURIComponent(value)
+		//sendData.value = encodeURIComponent(value)
 
 		// -- Send Value
 		var name = $(element).attr("name");
-		sendData.name = name;
+		sendData[name] = value;
 
 		console.info("Sending " + value + " as name " + name);
 

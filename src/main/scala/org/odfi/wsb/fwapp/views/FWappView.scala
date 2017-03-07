@@ -31,11 +31,48 @@ trait FWappView extends BasicHTMLView with HarvestedResource {
   
   // URI/Path Utils
   //-----------
-  def createAppURI(path:String) = getApp match {
-    case Some(site : Site) if(path.startsWith("/")) =>   new URI((site.fullURLPath+"/"+path).replaceAll("//+","/"))
-    case other => new URI(path.replaceAll("//+","/"))
+  def createAppURI(pathInput:String) = { 
+    
+    val path = pathInput.replaceAll("//+","/")
+    
+    
+    //println("createAppURI for -> "+path)
+    var resLink = getApp match {
+    
+      //-- Start with # , don't change
+      case Some(site : Site) if(path.startsWith("#")) => 
+        new URI(path.replaceAll("//+","/"))
+      //-- Starts with @/, path based on top level app
+      case Some(site : Site) if(path.startsWith("@/")) => 
+        
+        //println("Found @/ link;  app is: "+site)
+        
+        // Take app, and look for top most from it
+        site.findTopMostIntermediaryOfType[Site] match {
+          case Some(topSite) =>
+            
+             //println("Found @/ link; top app is: "+topSite+" -> "+topSite.fullURLPath)
+            
+             new URI( (topSite.fullURLPath+"/"+ path.stripPrefix("@").stripPrefix(topSite.fullURLPath) ).replaceAll("//+","/"))
+          case otherwise => 
+            // println("Found @/ link without top app, adding current app base: "+site.fullURLPath)
+            
+            new URI( (site.fullURLPath+"/"+path.stripPrefix("@").stripPrefix(site.fullURLPath)).replaceAll("//+","/"))
+        }
+        
+       
+        
+      case Some(site : Site) if(!path.startsWith("/")) => 
+        //println("Path is relative")
+        new URI(getViewPath+"/"+path)
+      case Some(site : Site) if(!path.startsWith(site.fullURLPath)) =>   
+       // println("Path does not start with site base path: "+site.fullURLPath)
+        new URI((site.fullURLPath+"/"+path).replaceAll("//+","/"))
+      case other => new URI(path.replaceAll("//+","/"))
+    }
+    //println("Result link: "+resLink)
+    resLink
   }
-  
   def createAssetsResolverURI(path:String) = {
     new URI(getApp match {
       case Some(app) if (app.assetsResolver.isDefined) => 
@@ -76,6 +113,15 @@ trait FWappView extends BasicHTMLView with HarvestedResource {
   
   def getViewPath = {
     this.findUpchainResource[FWappIntermediary].get.fullURLPath
+  }
+  
+  /**
+   * Returns sub path of current view
+   * If view is at /a/b , and the request is responded at /a/b/c/d/e
+   * Return is: /c/d/e
+   */
+  def getViewSubPath = {
+    request.get.originalPath.stripPrefix(getViewPath)
   }
   
   // Session Utils

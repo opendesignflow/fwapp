@@ -11,6 +11,7 @@ import com.idyria.osi.wsb.webapp.http.message.HTTPIntermediary
 import com.idyria.osi.wsb.webapp.http.message.HTTPPathIntermediary
 import org.apache.http.HttpResponse
 import com.idyria.osi.wsb.webapp.http.message.HTTPResponse
+import com.idyria.osi.wsb.core.broker.tree.Intermediary
 
 trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
 
@@ -42,23 +43,25 @@ trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
   def mergeTree(t: FWappIntermediary) = {
 
     //-- Save
-    t.deriveFrom(this)
+    /*t.deriveFrom(this)
     tree = Some(t)
-    preTree <= t
+    preTree <= t*/
 
     //-- Find Assets Resolver to add default framework
-    t.on("updated") {
+    /*t.on("updated") {
       t.findChildOfType[AssetsResolver] match {
         case Some(resolver) =>
-          println(s"Found AssetsResolver")
-          AssetsManager.addAssetsSource("fwapp", new ResourcesAssetSource("")).addFilesSource("fwapp")
+          println(s"Found AssetsResolver for: "+resolver.fullURLPath)
+         
+          //AssetsManager.addAssetsSource("fwapp", new ResourcesAssetSource("")).addFilesSource("fwapp")
+         
           assetsResolver = Some(resolver)
 
         case None =>
 
           println(s"Cannot find AssetsResolver")
       }
-    }
+    }*/
 
     //-- Return
     t
@@ -84,13 +87,9 @@ trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
     //AssetsManager
     this.engine.lStart
   }
-  
+
   this.onStop {
     this.engine.lStop
-  }
-
-  this.onClean {
-    //println("Removing from processing")
   }
 
 }
@@ -100,17 +99,39 @@ trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
  */
 class Site(basePath: String) extends FWappIntermediary(basePath) with FWappApp {
 
+  override def getDisplayName = getClass.getName.replace("$", "")
+
   this.engine.broker <= this
-  
+
   //-- Local Builder adds to pretree
   this <= this.preTree
+  //this <= this.preTree
   setTopBuildIntermediary(this.preTree)
-  
-  this.onIntermediaryAdded[FWappIntermediary] {
-    i => 
-      println(s"Added intermediary to Site: "+i)
+
+  override def <=[I <: Intermediary](i: I) = i match {
+    case pt if (pt == this) =>
+      i
+    case pt if (pt == this.preTree) =>
+      super.<=(i)
+    case other =>
+      this.preTree <= i
   }
-  
+
+  this.onIntermediaryAdded[FWappIntermediary] {
+    i =>
+      println(s"Added intermediary to Site: " + i)
+  }
+
+  this.onClean {
+    println("Removing Site from parent")
+    this.parentIntermediary match {
+      case null =>
+      case other =>
+        other -= this
+      // other.intermediaries -= this
+    }
+
+  }
 
   this.onDownMessage {
     req =>
@@ -140,7 +161,7 @@ class Site(basePath: String) extends FWappIntermediary(basePath) with FWappApp {
 
         case other =>
 
-          logInfo[Site]("Dispatching to  pretree: "+this.intermediaries.size)
+          logInfo[Site]("Dispatching to  pretree: " + this.intermediaries.size)
           //this.preTree.down(req)
           down(req)
 

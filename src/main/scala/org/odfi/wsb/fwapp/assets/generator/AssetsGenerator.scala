@@ -10,7 +10,7 @@ import com.idyria.osi.wsb.webapp.mime.MimeTypes
 
 class AssetsGenerator extends AssetsSource("/") {
 
-  tlogEnableFull[AssetsGenerator]
+  //tlogEnableFull[AssetsGenerator]
   
   var generatedResources = Map[String, (String,GeneratedOutputStream)]()
 
