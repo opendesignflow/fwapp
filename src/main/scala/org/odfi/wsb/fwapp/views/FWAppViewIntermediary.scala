@@ -25,7 +25,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
   
   this.acceptDown[HTTPRequest] {
     req => 
-     // println(s"Checking acceptance: ${req.originalPath} <- ${req.path}")
+      println(s"Checking acceptance: ${req.originalPath} <- ${req.path}")
       //req.path=="/" || req.path=="" || req.path.split("/").filter(_.length()>0).length==1
       req.path=="/" || req.path=="" || (htmlView.isDefined && classOf[FWAppCatchAllView].isAssignableFrom(htmlView.get))
   }
@@ -79,7 +79,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
   //---------------
   this.onDownMessage {
     // When under a HTTPPathIntermediary, the current level is "/". If not "/", message is supposed to go down
-    req  =>
+    case req if(req.path=="/")  =>
 
       //println(s"Rendering for: "+req.originalPath)
       logInfo[FWAppViewIntermediary](s"Paths are identical for ${req.originalPath} in ${basePath} -> render view")
@@ -260,6 +260,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
             }
 
             //-- Check session
+            //-- If Session is present after rendering, add to pool
             (isSessionBeforeRender, req.hasSession) match {
               //-- New Session
               case (false, true) =>
@@ -300,7 +301,8 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
         case None =>
       }
 
-  
+    case other => 
+      
 
   }
   

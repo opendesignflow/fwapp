@@ -47,7 +47,7 @@ trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingVie
 
   def bindValueWithName[V](name: String, cl: V => Any)(implicit tag: ClassTag[V]): Unit = {
 
-    //println(s"Inside bind value with name $name: "+tag)
+    println(s"Inside bind value with name $name: "+tag)
     
     var eventName = currentNode match {
       case t: Textarea[_, _] => "onchange"

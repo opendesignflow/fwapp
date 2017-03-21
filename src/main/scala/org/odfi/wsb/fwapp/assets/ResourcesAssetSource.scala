@@ -12,6 +12,8 @@ import java.lang.ref.WeakReference
 
 class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath) {
 
+  //tlogEnableFull[ResourcesAssetSource]
+  
   name = "Simple File Resources"
 
   //-- Accept all requests, appart from error containing ones
@@ -46,6 +48,8 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
     } else {
       fileSources = source :: fileSources
     }
+    
+    this
 
   }
   /**

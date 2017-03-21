@@ -9,9 +9,15 @@ trait JQueryView extends LibraryView {
 
     case (None, target) =>
       onNode(target) {
+        
+        
         script(createAssetsResolverURI("/fwapp/external/jquery/jquery-3.1.1.min.js")) {
 
         }
+        
+        /*script(createAssetsResolverURI("/fwapp/external/require/2.3.3/require.js")) {
+
+        }*/
       }
 
     /*case Some((source, targetNode)) =>

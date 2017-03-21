@@ -34,6 +34,8 @@ trait FWAppFrameworkView extends JQueryView {
         script(createAssetsResolverURI("/fwapp/actions.js")) {
 
         }
+        
+        
 
       }
     case (None, target) =>
@@ -80,6 +82,22 @@ trait FWAppFrameworkView extends JQueryView {
   def createJSCallAction(code: String, render: String = "none") = {
     s"fwapp.actions.callAction(this,'${getViewPath}?_action=${code}&_render=none',{_format: 'json'})"
   }
+  
+  def createSimpleNamedAction(name:String, render: String = "none")(cl: => Unit) = {
+    
+     //-- Make sure a session was set
+    ensureSession
+    
+    //-- Register 
+    val node = currentNode
+    this.actions = actions + (name -> (node, { node =>
+      cl
+    }))
+    
+    s"fwapp.actions.callAction(this,'${getViewPath}?_action=${name}&_render=none',{_format: 'json'})"
+    
+  }
+  
 
   // Cliking
   //----------------

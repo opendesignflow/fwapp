@@ -15,21 +15,26 @@ trait FWAppTempBufferView extends FWAppValueBindingView {
   def inputToTempBuffer[VT <: Any](name: String, value: String)(cl: => Any)(implicit tag: ClassTag[VT]) = {
 
     putToTempBuffer(name, value)
- 
-    var node = input {
-      +@("value" -> value.toString)    
-      bindValue {
-        v: VT =>
-          v.toString match {
+    val rcl = {
+      value : String => 
+        value.toString match {
             case "" => tempBuffer = tempBuffer - name
-            case _ => tempBuffer = tempBuffer.updated(name, v)
+            case _ => tempBuffer = tempBuffer.updated(name, value)
           }
-
-      }
+    }
+   
+    
+    var node = input {
+      +@("value" -> value.toString)   
+      
+       bindValueWithName(name, rcl)
+      
     }
     switchToNode(node, cl)
     node
   }
+  
+  
   def inputToTempBufferWithDefault[VT <: Any](name: String, default: VT)(cl: => Any)(implicit tag: ClassTag[VT]) = {
 
     //-- Set Default Value

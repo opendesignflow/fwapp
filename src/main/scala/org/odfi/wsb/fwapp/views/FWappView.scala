@@ -25,6 +25,13 @@ trait FWappView extends BasicHTMLView with HarvestedResource {
       None
   }
   
+  def getIntermediaryTreeTop =  this.findUpchainResource[FWappIntermediary] match {
+    case Some(baseIntermediary) => 
+      Some(baseIntermediary.findTopMostIntermediary)
+    case None => 
+      None
+  }
+  
   // Requests
   //--------
   var request  : Option[HTTPRequest] = None

@@ -28,10 +28,10 @@
 						</goals>
 						<configuration>
 							<recompileMode>all</recompileMode>
-                			<!--<useZincServer>false</useZincServer>-->
-						  <excludes>
-						      <exclude>**/org/odfi/wsb/fwapp/**/*.scala</exclude>
-						  </excludes>
+							<!--<useZincServer>false</useZincServer> -->
+							<excludes>
+								<exclude>**/org/odfi/wsb/fwapp/**/*.scala</exclude>
+							</excludes>
 						</configuration>
 					</execution>
 				</executions>
@@ -53,7 +53,7 @@
 							<sources>
 								<source>${project.build.directory}/generated-sources/scala</source>
 								<source>src/main/macros</source>
-<!-- 								<source>src/examples/scala</source> -->
+								<!-- <source>src/examples/scala</source> -->
 							</sources>
 						</configuration>
 					</execution>
@@ -66,7 +66,7 @@
 							<sources>
 								<source>${project.build.directory}/generated-sources/scala</source>
 								<source>src/main/macros</source>
-<!-- 								<source>src/examples/scala</source> -->
+								<!-- <source>src/examples/scala</source> -->
 							</sources>
 						</configuration>
 					</execution>
@@ -137,8 +137,8 @@
 		</repository>
 		<repository>
 			<snapshots>
-                <enabled>true</enabled>
-            </snapshots>
+				<enabled>true</enabled>
+			</snapshots>
 			<id>odfi.snapshots</id>
 			<name>odfi-snapshot</name>
 			<url>http://www.opendesignflow.org/maven/repository/snapshots/</url>
@@ -158,6 +158,13 @@
 			<artifactId>wsb-webapp</artifactId>
 			<version>2.1.2-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>org.scalameta</groupId>
+			<artifactId>scalameta_2.12</artifactId>
+			<version>1.5.0</version>
+		</dependency>
+		
+
 
 	</dependencies>
 </project>
