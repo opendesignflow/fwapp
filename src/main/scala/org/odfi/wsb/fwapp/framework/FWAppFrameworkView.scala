@@ -98,6 +98,14 @@ trait FWAppFrameworkView extends JQueryView {
     
   }
   
+  
+  // Extra data
+  def withData(name:String,valueJS:String) = {
+    
+    data("value-"+name -> valueJS)
+    
+  }
+  
 
   // Cliking
   //----------------

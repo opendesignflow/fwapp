@@ -6,6 +6,10 @@ fwapp.actions = {
 
 		sendData = sendData || {};
 		
+		
+		
+		
+		
 		/*
 		 * $(data).each(function(key,val) {
 		 * 
@@ -16,15 +20,9 @@ fwapp.actions = {
 		 * 
 		 * console.log("Sending data: "+key+", value: "+val); });
 		 */
+		
 		// Look for form
 		//-----------
-		$(Object.keys(sendData)).each(function(i,e) {
-			
-			console.log("Found send data: "+e);
-			path = path+"&"+e+"="+sendData[e];
-			
-		});
-		
 		if ($(sender).parents('form').length) {
 			
 			var parentForm = $(sender).parents('form');
@@ -34,8 +32,46 @@ fwapp.actions = {
 			//sendData.form = parentForm.serializeArray();
 		}
 		
+		// Look for extra data on the sender
+		//-------------------
+		console.log("Known data: "+$(sender).data("value-text"));
+		for (var key in $(sender).data()) {
+			console.log("Found data: "+key+ "-> "+$(sender).data(key));
+		}
+		var keys = Object.keys($(sender).data());
+		var valueKeys = keys.filter(function(key){
+		    return key.match(/value[\w]+/)
+		  
+		});
+		valueKeys.forEach(function(key){
+			
+			var parameterName = key.replace(/^value/, '').toLowerCase();
+		    console.log("Found value data: "+parameterName);
+		    
+		    //-- Evaluate
+		    var evalValue = $(sender).data("value-"+parameterName);
+		    console.log("script for data: "+evalValue);
+		    var resultValue = eval(evalValue);
+		    console.log("Result value: "+resultValue);
+		    
+		    sendData[parameterName] = resultValue;
+		    
+		});
+		
+		
 		console.info("Running action, sending remote request for " + path);
 		console.info("Send data is: " + JSON.stringify(sendData));
+		
+		
+		// Add Send Data to path
+		//--------------------------
+		$(Object.keys(sendData)).each(function(i,e) {
+			
+			console.log("Found send data: "+e);
+			path = path+"&"+e+"="+encodeURI(sendData[e]);
+			
+		});
+		
 		
 		// Disable
 		// ------------

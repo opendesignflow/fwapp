@@ -15,10 +15,21 @@ class AssetsResolver(path: String = "/") extends FWappIntermediary(path) {
   
   
    def addAssetsSource[T <: AssetsSource](name:String,source:T) : T = {
-    source.basePath = name
+    source.basePath = ("/"+name).replaceAll("//+", "/")
     this <= source
    // this.assetsSources = this.assetsSources + (name -> source)
     source
+  }
+  
+  def ifNoAssetSource(name:String)(cl: => Unit) = {
+    this.intermediaries.find {
+      case r : AssetsSource if (r.basePath==name) => true
+      case other => false
+    } match {
+      case Some(found) => 
+      case None => 
+        cl
+    }
   }
   
   this.onNewParentIntermediary {
