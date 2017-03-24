@@ -59,6 +59,16 @@ trait FWAppTempBufferView extends FWAppValueBindingView {
     case Some(v) =>
       throw new RuntimeException(s"Getting input buffer value for $name failed because requested type $tag does not match value's ${v.getClass()}")
   }
+  
+   /**
+   * Assume Strig if class tag was not overriden
+   */
+  def getTempBufferValueDefault[VT <: Any](name: String,default: VT)(implicit tag: ClassTag[VT]): VT = this.tempBuffer.get(name) match {
+    case None => default
+    case Some(v) if (tag.runtimeClass.isInstance(v)) => v.asInstanceOf[VT]
+    case Some(v) =>
+      throw new RuntimeException(s"Getting input buffer value for $name failed because requested type $tag does not match value's ${v.getClass()}")
+  }
 
   def putToTempBuffer(name: String, v: Any) = {
     tempBuffer = tempBuffer.updated(name, v)
