@@ -8,37 +8,36 @@ import org.odfi.wsb.fwapp.Site
 class AssetsResolver(path: String = "/") extends FWappIntermediary(path) {
 
   // Add Defaults
-  addAssetsSource("/fwapp",new ResourcesAssetSource).addFilesSource("fwapp")
+  addAssetsSource("/fwapp", new ResourcesAssetSource).addFilesSource("fwapp")
   /*var fwappSource = new ResourcesAssetSource("/fwapp")
   fwappSource.addFilesSource("fwapp")
   this <= fwappSource*/
-  
-  
-   def addAssetsSource[T <: AssetsSource](name:String,source:T) : T = {
-    source.basePath = ("/"+name).replaceAll("//+", "/")
+
+  def addAssetsSource[T <: AssetsSource](name: String, source: T): T = {
+    source.basePath = ("/" + name).replaceAll("//+", "/")
     this <= source
-   // this.assetsSources = this.assetsSources + (name -> source)
+    // this.assetsSources = this.assetsSources + (name -> source)
     source
   }
-  
-  def ifNoAssetSource(name:String)(cl: => Unit) = {
+
+  def ifNoAssetSource(name: String)(cl: => Unit) = {
     this.intermediaries.find {
-      case r : AssetsSource if (r.basePath==name) => true
+      case r: AssetsSource if (r.basePath == name) => true
       case other => false
     } match {
-      case Some(found) => 
-      case None => 
+      case Some(found) =>
+      case None =>
         cl
     }
   }
-  
+
   this.onNewParentIntermediary {
-    println("Assets Resolver, add to application")
-    this.findParentOfType[Site]  match {
+    logFine[AssetsResolver]("Assets Resolver, add to application")
+    this.findParentOfType[Site] match {
       case Some(app) if (app.assetsResolver.isEmpty) =>
-        println("Found app with no resolver: "+app)
+        logFine[AssetsResolver]("Found app with no resolver: " + app)
         app.assetsResolver = Some(this)
-      case other => 
+      case other =>
     }
     /*this.findUpchainResource[FWappApp] match {
       case Some(app) =>
@@ -47,23 +46,23 @@ class AssetsResolver(path: String = "/") extends FWappIntermediary(path) {
       case None => 
     }*/
   }
-  
-  def findAssetsSource(name:String) = {
+
+  def findAssetsSource(name: String) = {
     this.intermediaries.collectFirst {
-      case s : AssetsSource if (s.basePath==("/"+name).replaceAll("//+", "/")) =>
+      case s: AssetsSource if (s.basePath == ("/" + name).replaceAll("//+", "/")) =>
         s
-      
+
     }
   }
-  
+
   this.onDownMessage {
     msg =>
-      
-      logFine[AssetsResolver]("Assets resolving: "+msg.path)
+
+      logFine[AssetsResolver]("Assets resolving: " + msg.path)
 
       // Split at "/" like "/a/b/c"
       // the "a" part is the target asset
-      var splittedPath = msg.path.trim.split("/").filter(_.length()>0)
+      var splittedPath = msg.path.trim.split("/").filter(_.length() > 0)
       splittedPath.length match {
         case 0 =>
 
@@ -72,8 +71,8 @@ class AssetsResolver(path: String = "/") extends FWappIntermediary(path) {
 
         case other =>
 
-          //-- Take asset name
-          /*var assetName = splittedPath(0)
+        //-- Take asset name
+        /*var assetName = splittedPath(0)
 
           //-- Remove from message
           msg.stripPathPrefix(s"/$assetName")

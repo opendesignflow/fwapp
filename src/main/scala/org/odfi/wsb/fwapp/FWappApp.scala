@@ -12,6 +12,7 @@ import com.idyria.osi.wsb.webapp.http.message.HTTPPathIntermediary
 import org.apache.http.HttpResponse
 import com.idyria.osi.wsb.webapp.http.message.HTTPResponse
 import com.idyria.osi.wsb.core.broker.tree.Intermediary
+import org.odfi.wsb.fwapp.assets.AssetsSource
 
 trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
 
@@ -99,7 +100,15 @@ trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
  */
 class Site(basePath: String) extends FWappIntermediary(basePath) with FWappApp {
 
-  override def getDisplayName = getClass.getName.replace("$", "")
+  
+  var siteName : Option[String] = None
+  
+  def setSiteName(str:String) = siteName = Some(str)
+  
+  override def getDisplayName = siteName match {
+    case Some(name) => name 
+    case None => getClass.getName.replace("$", "")
+  }
 
   this.engine.broker <= this
 
@@ -167,6 +176,28 @@ class Site(basePath: String) extends FWappIntermediary(basePath) with FWappApp {
 
       }
 
+  }
+  
+  
+  // Assets Helper
+  //----------------
+  def useDefaultAssets = {
+    "/assets" uses new AssetsResolver
+  }
+  
+  // INfos when starting
+  //------------------
+  this.onStart {
+    
+    this.engine.network.connectors.foreach {
+      case hc : HTTPConnector => 
+        
+        println("Website "+getDisplayName+ s" available at: http://localhost:${hc.port}${this.basePath}")
+        
+      case other => 
+    }
+    
+    
   }
 }
 
