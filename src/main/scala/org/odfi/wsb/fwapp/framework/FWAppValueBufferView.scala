@@ -3,6 +3,9 @@ package org.odfi.wsb.fwapp.framework
 import com.idyria.osi.ooxoo.core.buffers.datatypes.BooleanBuffer
 import com.idyria.osi.ooxoo.core.buffers.datatypes.XSDStringBuffer
 import com.idyria.osi.ooxoo.core.buffers.datatypes.IntegerBuffer
+import com.idyria.osi.ooxoo.core.buffers.datatypes.DoubleBuffer
+import org.w3c.dom.html.HTMLElement
+import com.idyria.osi.vui.html.Input
 
 trait FWAppValueBufferView extends FWAppValueBindingView {
   
@@ -19,6 +22,21 @@ trait FWAppValueBufferView extends FWAppValueBindingView {
     }
   
   }
+  
+  /**
+   * BindValue with Buffers
+   */
+  def bindBufferValue(vb: DoubleBuffer): Unit = {
+
+    +@("value" -> vb.toString())
+    
+    this.bindValue {
+      v: Double =>
+       // println(s"Updating bound value")
+        vb.set(v)
+    }
+  
+  }
 
   /**
    * BindValue with Buffers
@@ -28,7 +46,7 @@ trait FWAppValueBufferView extends FWAppValueBindingView {
     +@("value" -> vb.toString())
     this.bindValue {
       v: String =>
-        vb.data = v
+        vb.set(v)
         
     }
 
@@ -44,10 +62,40 @@ trait FWAppValueBufferView extends FWAppValueBindingView {
 
     this.bindValue {
       v: Boolean =>
-        vb.data = v
+        vb.set(v)
 
     }
 
+  }
+  
+  def inputToBufferWithlabel(name:String,vb:DoubleBuffer)(cl: => Any) : Input[HTMLElement,_]  = {
+    input {
+      label(name) {
+        
+      }
+      bindBufferValue(vb)
+      cl
+    }
+  }
+  
+  def inputToBufferWithlabel(name:String,vb:IntegerBuffer)(cl: => Any) : Input[HTMLElement,_] = {
+    input {
+      label(name) {
+        
+      }
+      bindBufferValue(vb)
+      cl
+    }
+  }
+  
+  def inputToBufferWithlabel(name:String,vb:BooleanBuffer)(cl: => Any) : Input[HTMLElement,_] = {
+    input {
+      label(name) {
+        
+      }
+      bindBufferValue(vb)
+      cl
+    }
   }
   
 }

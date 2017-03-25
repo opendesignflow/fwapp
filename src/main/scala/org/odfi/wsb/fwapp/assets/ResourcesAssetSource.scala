@@ -13,6 +13,7 @@ import java.lang.ref.WeakReference
 class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath) {
 
   //tlogEnableFull[ResourcesAssetSource]
+  var enableRandomFile = false
   
   name = "Simple File Resources"
 
@@ -105,46 +106,12 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
         found
         
     }
+    
+    
+   
+    
     res
-    /*allFileSources.collectFirst {
-      case sourceBase if (Thread.currentThread().getContextClassLoader.getResource(sourceBase+extractedPath)!=null) =>
-        Thread.currentThread().getContextClassLoader.getResource(sourceBase+extractedPath)
-      case sourceBase if (new File(new File(sourceBase), extractedPath.replace('/', File.separatorChar)).exists()) => 
-        new File(new File(sourceBase), extractedPath.replace('/', File.separatorChar)).toURI().toURL()
-    }*/
     
-    
-    /*Thread.currentThread().getContextClassLoader.getResource(extractedPath) match {
-
-      case null =>
-        allFileSources.find {
-          source =>
-
-            // var possiblePath = new File(s"${source}${extractedPath}").toURI.toURL.toString
-
-            var searchFile = new File(source, extractedPath.replace('/', File.separatorChar))
-            logFine[ResourcesAssetSource](s"**** Searching as File: ${searchFile}")
-            searchFile match {
-
-              case f if (f.exists) =>
-
-                logFine(s"**** Found!")
-                res = Option(f.toURI.toURL)
-                true
-
-              case f => false
-            }
-
-        }
-
-      case url =>
-        logFine[ResourcesAssetSource](s"**** Found!")
-        res = Option(url);
-        true
-    }
-
-    res*/
-
   }
 
   /**
@@ -158,11 +125,24 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
     //var res = this.searchResource(extractedPath.get.group(1))
     var res = this.searchResource(request.path)
 
+     // Random File
+    res match {
+      case None if(enableRandomFile && request.getURLParameter("filePath").isDefined) =>
+        
+        var randomFile = new File(request.getURLParameter("filePath").get)
+        randomFile.exists() match {
+          case true => Some(randomFile.toURI().toURL())
+          case false => None
+        }
+        
+      case other => res
+    }
+    
     // var res = this.searchResource(request.qualifier)
 
     //println(s"*** Request Resource search of ${request.qualifier} against: ${WebApplication.this.filter.pattern.toString} : " + extractedPath + ", result -> " + res)
 
-    res
+   // res
 
   }
 

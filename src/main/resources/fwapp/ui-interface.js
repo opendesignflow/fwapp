@@ -27,7 +27,7 @@ fwapp.ui = {
 		var fault = $.parseJSON("{" + faultJsonString + "}").Fault;
 
 		// -- Get text
-		var text = localWeb.decodeHTML(fault.Reason.Text);
+		var text = fwapp.decodeHTML(fault.Reason.Text);
 
 		console.info("Error Reason: " + text);
 

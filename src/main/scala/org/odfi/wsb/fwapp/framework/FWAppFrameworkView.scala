@@ -80,8 +80,23 @@ trait FWAppFrameworkView extends JQueryView {
   //----------
   
   def createJSCallAction(code: String, render: String = "none") = {
-    s"fwapp.actions.callAction(this,'${getViewPath}?_action=${code}&_render=none',{_format: 'json'})"
+    
+    
+    //-- Make data json string
+    var dataString = (List("_format" -> "json")).map { case (name,value) => s""" "$name": $value """ }.mkString(",")
+    
+    s"fwapp.actions.callAction(this,'${getViewPath}?_action=${code}&_render=none',{$dataString})"
   }
+  
+  def createJSCallActionWithData(code: String,data:List[(String,String)], render: String = "none") = {
+    
+    
+    //-- Make data json string
+    var dataString = (data :+ ("_format" -> "\"json\"")).map { case (name,value) => s""" "$name": $value """ }.mkString(",")
+    
+    s"fwapp.actions.callAction(this,'${getViewPath}?_action=${code}&_render=none',{$dataString})"
+  }
+  
   
   def createSimpleNamedAction(name:String, render: String = "none")(cl: => Unit) = {
     

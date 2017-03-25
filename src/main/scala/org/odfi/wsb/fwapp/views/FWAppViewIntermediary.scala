@@ -174,7 +174,9 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
             req.getURLParameter("_render") match {
               case None =>
                 //logInfo[FWappIntermediary]("Rerender full")
+                
                 resp.htmlContent = view.rerender
+                println(s"Text res: "+resp.htmlContent.get.toString())
                // logFine[FWappIntermediary]("Result: "+resp.htmlContent.get.toString()) 
 
               case Some("partial") =>
@@ -250,7 +252,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                   case (code, r) =>
                     results.actionResults += r
                 }
-                resp.content = ByteBuffer.wrap(results.toJSonString.getBytes)
+                resp.content = ByteBuffer.wrap(("{"+results.toJSonString+"}").getBytes)
 
               //-- Add Results
 
