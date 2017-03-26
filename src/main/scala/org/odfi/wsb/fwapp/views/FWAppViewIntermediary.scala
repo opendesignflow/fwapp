@@ -176,7 +176,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                 //logInfo[FWappIntermediary]("Rerender full")
                 
                 resp.htmlContent = view.rerender
-                println(s"Text res: "+resp.htmlContent.get.toString())
+                //println(s"Text res: "+resp.htmlContent.get.toString())
                // logFine[FWappIntermediary]("Result: "+resp.htmlContent.get.toString()) 
 
               case Some("partial") =>
