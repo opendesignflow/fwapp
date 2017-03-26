@@ -173,8 +173,10 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
                 val rangeSpecRegexp = s"""bytes=([0-9]+)(?:-([0-9]+))?""".r
                 rangeSpecRegexp.findFirstMatchIn(rangeSpec) match {
                   case Some(res) =>
+                    
                     // Check results
-                    println(s"Match: ${res.group(1)},${res.group(2)}")
+                    //println(s"Match: ${res.group(1)},${res.group(2)}")
+                    
                     (res.group(1), res.group(2)) match {
                       case ("", "") => (-1, -1)
                       case (start, null) => (start.toInt, -1)
