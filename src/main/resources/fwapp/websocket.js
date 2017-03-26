@@ -128,12 +128,12 @@ fwapp.websocket = {
 				if (pname == name) {
 					try {
 						//f(payload[0]);
-						requestAnimationFrame(function(ts) {
+						//requestAnimationFrame(function(ts) {
 							f(payload[0]);
-						});
+						//});
 					} finally {
 						// Done
-						fwapp.websocket.sendMessageToServer("Done");
+						//fwapp.websocket.sendMessageToServer("Done");
 					}
 					
 				}
