@@ -98,4 +98,45 @@ trait FWAppValueBufferView extends FWAppValueBindingView {
     }
   }
   
+  def selectToBuffer(values: List[(String,String)],vb:XSDStringBuffer)(cl: => Any)  = {
+    
+    
+    // If actual value not in range, set to first
+    values.find {
+      case (name,v) => v==vb.toString()
+    } match {
+      case None => 
+        vb.set(values(0)._1)
+      case other => 
+    }
+    
+    // Create Select
+    select {
+      
+      //-- Set options
+      values.foreach {
+        case (name,v) => 
+          
+          option(v) {
+            textContent(name)
+            
+            //-- Selected
+            if (v==vb.toString()) {
+              +@("selected"->true)
+            }
+          }
+ 
+      }
+      
+      //-- Bind
+      bindValue { sv : String => vb.set(sv) }
+      
+      //-- Config closure
+      cl
+      
+    }
+    
+    
+  }
+  
 }
