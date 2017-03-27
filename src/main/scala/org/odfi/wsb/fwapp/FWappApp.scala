@@ -21,7 +21,7 @@ trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
   /**
    * WSB Engine used for operations
    */
-  var engine = new WSBEngine
+  val engine = new WSBEngine
 
   /**
    * The PreTree is added to the broker before the main tree

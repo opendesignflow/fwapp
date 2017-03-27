@@ -86,6 +86,8 @@ trait WebsocketView extends FWAppFrameworkView {
           interface =>
 
             interface.writeSOAPPayload(elt)
+            interface.nc.waitForInputPayload(1000)
+            //println("Got input payload -> keep going")
         }
 
       case None =>

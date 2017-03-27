@@ -133,7 +133,7 @@ fwapp.websocket = {
 						//});
 					} finally {
 						// Done
-						//fwapp.websocket.sendMessageToServer("Done");
+						fwapp.websocket.sendMessageToServer("Done");
 					}
 					
 				}
