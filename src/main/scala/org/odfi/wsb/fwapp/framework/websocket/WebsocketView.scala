@@ -92,7 +92,7 @@ trait WebsocketView extends FWAppFrameworkView {
 
       case None =>
     }
-    getTopParentView.@->("soap.broadcast", elt)
+   // getTopParentView.@->("soap.broadcast", elt)
   }
 
 }
