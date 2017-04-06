@@ -11,7 +11,7 @@ import java.net.URLEncoder
 
 import scala.language.implicitConversions
 import org.odfi.wsb.fwapp.views.FWAppViewIntermediary
-import org.odfi.wsb.fwapp.rules.NavigationRule
+import org.odfi.wsb.fwapp.navigation.NavigationRule
 
 trait FWappTreeBuilder extends TLogSource {
 
@@ -38,6 +38,10 @@ trait FWappTreeBuilder extends TLogSource {
       fwappIntermediary.@->("updated")
       stackBackToLastIntermediary
       this
+    }
+
+    def view[V <: FWappView](v: V): Unit = {
+      view(v.getClass)
     }
 
     def view[V <: FWappView](v: Class[V]): IWrapper[I] = {
@@ -210,11 +214,11 @@ trait FWappTreeBuilder extends TLogSource {
     nr
   }
 
-  def view[V <: FWappView](v: Class[V]) : Unit = {
+  def view[V <: FWappView](v: Class[V]): Unit = {
 
     var viewIntermediary = new FWAppViewIntermediary
     viewIntermediary.htmlView = v
-    
+
     //viewIntermediary.basePath = this.fwappIntermediariesStack.head.fwappIntermediary.basePath
 
     this.fwappIntermediariesStack.head.fwappIntermediary <= viewIntermediary
@@ -222,11 +226,11 @@ trait FWappTreeBuilder extends TLogSource {
     // this.fwappIntermediariesStack.head.fwappIntermediary.htmlView = v
 
   }
-  
-  def view[V <: FWappView](v: V) : Unit = {
+
+  def view[V <: FWappView](v: V): Unit = {
     view(v.getClass)
-    
-   /* var viewIntermediary = new FWAppViewIntermediary
+
+    /* var viewIntermediary = new FWAppViewIntermediary
     viewIntermediary.htmlView = v
     
     //viewIntermediary.basePath = this.fwappIntermediariesStack.head.fwappIntermediary.basePath

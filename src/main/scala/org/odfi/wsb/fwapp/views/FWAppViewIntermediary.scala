@@ -16,20 +16,19 @@ import org.odfi.wsb.fwapp.framework.Errors
 import com.idyria.osi.wsb.webapp.http.message.HTTPRequest
 
 class FWAppViewIntermediary extends FWappIntermediary("/") {
-  
-  
+
   override def getDisplayName = htmlView match {
-    case Some(v) if(viewPool.size>0) => viewPool.head._2.getDisplayName 
+    case Some(v) if (viewPool.size > 0) => viewPool.head._2.getDisplayName
     case other => super.getDisplayName
   }
-  
+
   this.acceptDown[HTTPRequest] {
-    req => 
+    req =>
       //println(s"Checking acceptance: ${req.originalPath} <- ${req.path}")
       //req.path=="/" || req.path=="" || req.path.split("/").filter(_.length()>0).length==1
-      req.path=="/" || req.path=="" || (htmlView.isDefined && classOf[FWAppCatchAllView].isAssignableFrom(htmlView.get))
+      req.upped == false && req.path == "/" || req.path == "" || (htmlView.isDefined && classOf[FWAppCatchAllView].isAssignableFrom(htmlView.get))
   }
-  
+
   // View Support
   //----------------
   var __htmlView: Option[Class[_ <: FWappView]] = None
@@ -79,7 +78,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
   //---------------
   this.onDownMessage {
     // When under a HTTPPathIntermediary, the current level is "/". If not "/", message is supposed to go down
-    case req  =>
+    case req =>
 
       //println(s"Rendering for: "+req.originalPath)
       logInfo[FWAppViewIntermediary](s"Paths are identical for ${req.originalPath} in ${basePath} -> render view")
@@ -111,7 +110,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
             //-- View needs current request
             view.request = Some(req)
 
-           // println("Render view, session is: " + isSessionBeforeRender + " , view instance: " + view.hashCode())
+            // println("Render view, session is: " + isSessionBeforeRender + " , view instance: " + view.hashCode())
 
             // Actions
             //-----------------
@@ -122,8 +121,8 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                 req.getURLParameter("_action") match {
                   case Some(actionName) =>
 
-                    logInfo[FWappIntermediary]("Calling Action "+actionName)
-                    
+                    logInfo[FWappIntermediary]("Calling Action " + actionName)
+
                     var res = new ActionsResultActionResult
                     res.ID = actionName
                     frview.saveActionResult(actionName, res)
@@ -135,19 +134,20 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
 
                           res.result = action._2(action._1).toString()
                           res.success = true
-                          
+
                           //println("Action run")
                         } catch {
                           case e: Throwable =>
 
-                            //println("Error fro, actino: " + e.getLocalizedMessage)
+                            //println("Error from actino: " + e.getLocalizedMessage)
 
                             res.success = false
                             var error = res.errors.add
                             error.message = e.getLocalizedMessage
-                            var stackString = new StringWriter
+                            
+                            /*var stackString = new StringWriter
                             e.printStackTrace(new PrintWriter(stackString))
-                            error.stack = stackString.toString()
+                            error.stack = stackString.toString()*/
                           //req.addError(e)
                         }
                       case None =>
@@ -162,7 +162,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                 }
               case other =>
             }
-          
+
             // Render type: 
             // - Normal to get the HTML for example
             // - partial to get only part of the view
@@ -171,30 +171,63 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
             //-- Render view
 
             //-- Render
-            req.getURLParameter("_render") match {
-              case None =>
-                //logInfo[FWappIntermediary]("Rerender full")
-                
-                resp.htmlContent = view.rerender
+            try {
+              req.getURLParameter("_render") match {
+                case None =>
+                  //logInfo[FWappIntermediary]("Rerender full")
+
+                  resp.htmlContent = view.rerender
                 //println(s"Text res: "+resp.htmlContent.get.toString())
-               // logFine[FWappIntermediary]("Result: "+resp.htmlContent.get.toString()) 
+                // logFine[FWappIntermediary]("Result: "+resp.htmlContent.get.toString()) 
 
-              case Some("partial") =>
-                resp.htmlContent = view.rerender
+                case Some("partial") =>
+                  resp.htmlContent = view.rerender
 
-              case Some("full") =>
-                resp.htmlContent = view.rerender
+                case Some("full") =>
+                  resp.htmlContent = view.rerender
 
-              //-- Other values don't render view
-              case other =>
-                resp.code = 200
-                resp.contentType = "text/plain"
-                resp.content = ByteBuffer.wrap("".getBytes)
+                //-- Other values don't render view
+                case other =>
+                  resp.code = 200
+                  resp.contentType = "text/plain"
+                  resp.content = ByteBuffer.wrap("".getBytes)
+              }
+            } catch {
+              case e: Throwable =>
+                req(e)
             }
 
             //-- Check errors
+            //-- First action errors, then normal errors
             //---------------
+             //println("JSON: "+isJSONFormat)
+            view match {
+              case frview: FWAppFrameworkView if (frview.hasActionErrors && isJSONFormat) =>
 
+               
+                
+                //-- Clear request errors, because the current error has priority
+                req.clearErrors
+                
+                //-- Set Code
+                resp.code = 500
+
+                //-- Output errors
+                var res = frview.actionResults.head._2 
+                resp.contentType = "application/json"
+                resp.content = ByteBuffer.wrap(("{" + res.toJSONString + "}").getBytes)
+              case frview: FWAppFrameworkView => 
+                
+                 /*println("No errors: "+frview.hasActionErrors)
+                 frview.actionResults.foreach {
+                   case (name,res) => 
+                     println("R: "+res.success)
+                 }*/
+                
+              case other =>
+
+            }
+            
             req.hasErrors match {
 
               //-- For JSON return, send back JSON report
@@ -231,13 +264,13 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
 
             // View Result
             //-----------------
-           // println("Checking view action results")
-            view match {
+            // println("Checking view action results")
+            /*view match {
 
               //-- JSon Result for actions
               case frview: FWAppFrameworkView if (frview.hasActionResult && isJSONFormat) =>
 
-               // println("Found action results")
+                // println("Found action results")
 
                 //-- Set Code
                 resp.code = frview.hasActionErrors match {
@@ -252,14 +285,16 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                   case (code, r) =>
                     results.actionResults += r
                 }
-                resp.content = ByteBuffer.wrap(("{"+results.toJSonString+"}").getBytes)
+                resp.content = ByteBuffer.wrap(("{" + results.toJSonString + "}").getBytes)
 
               //-- Add Results
 
               //-- Error Page
               //-- NOthing otherwise
               case other =>
-            }
+            }*/
+
+            
 
             //-- Check session
             //-- If Session is present after rendering, add to pool
@@ -284,7 +319,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
             case e: Throwable =>
 
               e.printStackTrace()
-              
+
               //-- Set Code
               resp.code = 500
               resp.contentType = "text/plain"
@@ -303,9 +338,8 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
         case None =>
       }
 
-    case other => 
-      
+    case other =>
 
   }
-  
+
 }

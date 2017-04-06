@@ -12,6 +12,9 @@ import java.lang.ref.WeakReference
 
 class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath) {
 
+  //-- Creation Thread ClassLoader is the base classloader
+  var searchClassLoader = Thread.currentThread().getContextClassLoader
+  
   //tlogEnableFull[ResourcesAssetSource]
   var enableRandomFile = false
   
@@ -89,7 +92,7 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
         var resourcePath = sourceBase+"/"+extractedPath
         var filePath = new File(new File(sourceBase), extractedPath.replace('/', File.separatorChar)).getCanonicalFile
         logFine[ResourcesAssetSource](s"**** Searching as Resource: ${resourcePath}")
-        Thread.currentThread().getContextClassLoader.getResource(resourcePath) match {
+        searchClassLoader.getResource(resourcePath) match {
           case null => 
             logFine[ResourcesAssetSource](s"**** Searching as File: ${filePath} -> ${filePath.canRead()}")
             filePath.exists() match {

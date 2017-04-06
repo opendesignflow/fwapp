@@ -21,28 +21,51 @@ fwapp.ui = {
 
 	// Report Error
 	// --------------------
-	errorFor : function(element, faultJsonString) {
+	errorFor : function(element, error) {
 
 		// console.info("Error Reason: "+faultJsonString[0]);
-		var fault = $.parseJSON("{" + faultJsonString + "}").Fault;
-
-		// -- Get text
-		var text = fwapp.decodeHTML(fault.Reason.Text);
-
-		console.info("Error Reason: " + text);
-
+		//var fault = $.parseJSON("{" + faultJsonString + "}").Fault;
+		
 		// -- Look for error in parent neighbor
 		var errorBlockNeighbor = $(element).parent().find(".error:first");
 		if (errorBlockNeighbor) {
 			console.log("Found Error Container: " + errorBlockNeighbor);
-			$(errorBlockNeighbor).html(text);
-			$(errorBlockNeighbor).css("display", "block");
+			
+			if (error.ActionResult) {
+				console.log("Got Action Result");
+				
+				// -- Get text
+				var text = fwapp.decodeHTML(error.ActionResult.Error[0].Message);
+				
+				$(errorBlockNeighbor).html(text);
+				$(errorBlockNeighbor).css("display", "block");
+				
+			} else {
+				console.log("Got simple Fault");
+				// -- Get text
+				var text = fwapp.decodeHTML(error.Reason.Text);
+				
+				$(errorBlockNeighbor).html(text);
+				$(errorBlockNeighbor).css("display", "block");
+			}
+			
+			
 			return true;
 
 		} else {
 			console.log("Error Container Not Found");
 			return false;
 		}
+		
+		//console.info("Error type: "+error[0])
+		
+		
+		
+		
+
+		console.info("Error Reason: " + text);
+
+		
 
 	}
 

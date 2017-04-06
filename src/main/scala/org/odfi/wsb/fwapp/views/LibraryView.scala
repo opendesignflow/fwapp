@@ -28,6 +28,8 @@ trait LibraryView extends FWappView {
 
     //-- Update
     closures = closures :+ cl
+    
+    //println("Adding CL for: "+name)
 
     //-- Save
     libraries += (name -> closures)
@@ -36,9 +38,11 @@ trait LibraryView extends FWappView {
   def placeLibraries = {
 
     // Check Libraries
+    try {
     this.libraries.foreach {
       case (lib, builders) =>
 
+       // println("Placing: "+lib)
         getAssetsResolver match {
           case Some(resolver) if (resolver.findAssetsSource(lib).isDefined) =>
             builders.foreach(_(Some(resolver.findAssetsSource(lib).get), currentNode))
@@ -53,6 +57,9 @@ trait LibraryView extends FWappView {
           case None =>
             builders.foreach(_(None, currentNode))
         }*/
+    }
+    } catch {
+      case e : Throwable => e.printStackTrace()
     }
     librariesPlaced = true
   }

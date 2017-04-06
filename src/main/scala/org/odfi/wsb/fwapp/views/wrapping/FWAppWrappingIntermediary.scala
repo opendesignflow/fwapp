@@ -36,6 +36,7 @@ class FWAppWrappingIntermediary extends FWappIntermediary("/") with FWAppCatchAl
       //resourceResolver.down(req)
 
       println(s"Got message: " + req)
+      println("Searching in: "+this.resourceResolver.fileSources)
 
     case req =>
   }
@@ -52,21 +53,24 @@ class FWAppWrappingIntermediary extends FWappIntermediary("/") with FWAppCatchAl
       var elements = htmlDocument.select("#" + extractId)
       elements.size() match {
         case 0 =>
+          
         case other =>
           println(s"Found Element")
 
           var retainedElement = elements.first()
 
-          println(retainedElement.toString())
+          //println(retainedElement.toString())
 
           //-- Create target view
           this.htmlView match {
             case Some(viewClass) =>
               var viewInstance = viewClass.newInstance()
+              viewInstance.request = Some(msg.relatedMessage.get.asInstanceOf[HTTPRequest])
               viewInstance.deriveFrom(this)
-              viewInstance.definePart("page") {
+              viewInstance.definePart(targetPart) {
                 new JSoupElementNode[HTMLElement,JSoupElementNode[_,_]](retainedElement)
               }
+              
               
               msg.htmlContent = viewInstance.rerender
 

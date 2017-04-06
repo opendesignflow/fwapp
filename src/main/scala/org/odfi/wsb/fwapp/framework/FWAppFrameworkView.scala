@@ -5,8 +5,9 @@ import org.w3c.dom.html.HTMLElement
 import org.odfi.wsb.fwapp.views.LibraryView
 import org.odfi.wsb.fwapp.assets.AssetsManager
 import org.odfi.wsb.fwapp.module.jquery.JQueryView
+import com.idyria.osi.wsb.webapp.http.message.HTTPRequest
 
-trait FWAppFrameworkView extends JQueryView {
+trait FWAppFrameworkView extends JQueryView  {
 
   this.addLibrary("fwapp") {
     case (Some(source), target) =>
@@ -34,8 +35,6 @@ trait FWAppFrameworkView extends JQueryView {
         script(createAssetsResolverURI("/fwapp/actions.js")) {
 
         }
-        
-        
 
       }
     case (None, target) =>
@@ -48,9 +47,11 @@ trait FWAppFrameworkView extends JQueryView {
   def cleanActionResults = actionResults = actionResults.empty
 
   def hasActionErrors = this.actionResults.find {
-    case (k, v) => v.__success == false
+    case (k, v) => v.__success.toBool == false
   }.isDefined
 
+  
+  
   def hasActionResult = !this.actionResults.isEmpty
 
   def saveActionResult(code: String, res: ActionsResultActionResult) = {
@@ -78,52 +79,82 @@ trait FWAppFrameworkView extends JQueryView {
 
   // Action support
   //----------
-  
+
   def createJSCallAction(code: String, render: String = "none") = {
-    
-    
+
     //-- Make data json string
-    var dataString = (List("_format" -> "json")).map { case (name,value) => s""" "$name": $value """ }.mkString(",")
-    
+    var dataString = (List("_format" -> "json")).map { case (name, value) => s""" "$name": $value """ }.mkString(",")
+
     s"fwapp.actions.callAction(this,'${getViewPath}?_action=${code}&_render=none',{$dataString})"
   }
-  
-  def createJSCallActionWithData(code: String,data:List[(String,String)], render: String = "none") = {
-    
-    
+
+  def createJSCallActionWithData(code: String, data: List[(String, String)], render: String = "none") = {
+
     //-- Make data json string
-    var dataString = (data :+ ("_format" -> "\"json\"")).map { case (name,value) => s""" "$name": $value """ }.mkString(",")
-    
+    var dataString = (data :+ ("_format" -> "\"json\"")).map { case (name, value) => s""" "$name": $value """ }.mkString(",")
+
     s"fwapp.actions.callAction(this,'${getViewPath}?_action=${code}&_render=none',{$dataString})"
   }
-  
-  
-  def createSimpleNamedAction(name:String, render: String = "none")(cl: => Unit) = {
-    
-     //-- Make sure a session was set
+
+  def registerNamedAction(name: String, render: String = "none")(cl: Function1[HTTPRequest,Unit]) = {
+
+    //-- Make sure a session was set
     ensureSession
-    
+
     //-- Register 
     val node = currentNode
     this.actions = actions + (name -> (node, { node =>
       cl
     }))
     
-    s"fwapp.actions.callAction(this,'${getViewPath}?_action=${name}&_render=none',{_format: 'json'})"
-    
+    cl
+
+    //s"fwapp.actions.callAction(this,'${getViewPath}?_action=${name}&_render=none',{_format: 'json'})"
+
+  }
+
+  // Data from components and between component
+  //------------------
+  def withData(name: String, valueJS: String) = {
+
+    data("value-" + name -> valueJS)
+
   }
   
-  
-  // Extra data
-  def withData(name:String,valueJS:String) = {
-    
-    data("value-"+name -> valueJS)
-    
-  }
   
 
   // Cliking
   //----------------
+  
+  def buttonClickReload(text:String)(cl: => Any) = {
+    button(text) {
+      onClickReload {
+        cl
+      }
+    }
+  }
+  
+  def buttonClick(text:String)(cl: => Any) =  {
+    button(text) {
+      onClickReload {
+        cl
+      }
+    }
+  }
+  
+  def iconClick(cl: => Any) = {
+    i {
+      onClick(cl)
+    }
+  }
+  
+  def iconClickReload(cl: => Any) = {
+    i {
+      onClickReload(cl)
+    }
+  }
+  
+  
   def onClickReload(cl: => Any): Unit = {
     reloadPage
     onClick(cl)
@@ -135,13 +166,31 @@ trait FWAppFrameworkView extends JQueryView {
     +@("onclick" -> (s"fwapp.actions.callAction(this,'${getViewPath}?_action=${actionCode}&_render=none')"))
 
   }
-  
+
+  // Form
+  //----------------
+  override def form(cl: => Any) = {
+    super.form {
+      +@("method"->"post")
+      cl
+    }
+  }
+  def onSubmit(cl: => Any) {
+    var actionCode = this.getActionString(cl)
+    input {
+      +@("type" -> "hidden")
+      +@("value"->actionCode)
+      fieldName("_action")
+      
+    }
+   // +@("onsubmit" -> (s"fwapp.actions.callAction(this,'${getViewPath}?_action=${actionCode}&_render=none')"))
+  }
   // JS Interface
   //----------------
   def reloadPage = {
-     +@("reload" -> "true")
+    +@("reload" -> "true")
   }
-  
+
   def waitReloadPage = {
     +@("wait" -> "true")
     reloadPage

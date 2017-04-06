@@ -6,7 +6,7 @@ import org.odfi.indesign.core.module.IndesignModule
 import org.odfi.wsb.fwapp.assets.AssetsResolver
 import org.odfi.wsb.fwapp.assets.AssetsManager
 import org.odfi.wsb.fwapp.assets.ResourcesAssetSource
-import org.odfi.wsb.fwapp.security.session.SessionIntermediary
+import org.odfi.wsb.fwapp.session.SessionIntermediary
 import com.idyria.osi.wsb.webapp.http.message.HTTPIntermediary
 import com.idyria.osi.wsb.webapp.http.message.HTTPPathIntermediary
 import org.apache.http.HttpResponse
@@ -77,22 +77,6 @@ trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
 
   }
 
-  // Lifecycle
-  //-----------
-  this.onInit {
-    this.engine.lInit
-  }
-  this.onStart {
-
-    println("Starting FWApp")
-    //AssetsManager
-    this.engine.lStart
-  }
-
-  this.onStop {
-    this.engine.lStop
-  }
-
 }
 
 /**
@@ -100,13 +84,12 @@ trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
  */
 class Site(basePath: String) extends FWappIntermediary(basePath) with FWappApp {
 
-  
-  var siteName : Option[String] = None
-  
-  def setSiteName(str:String) = siteName = Some(str)
-  
+  var siteName: Option[String] = None
+
+  def setSiteName(str: String) = siteName = Some(str)
+
   override def getDisplayName = siteName match {
-    case Some(name) => name 
+    case Some(name) => name
     case None => getClass.getName.replace("$", "")
   }
 
@@ -177,27 +160,64 @@ class Site(basePath: String) extends FWappIntermediary(basePath) with FWappApp {
       }
 
   }
-  
-  
+
   // Assets Helper
   //----------------
   def useDefaultAssets = {
     "/assets" uses new AssetsResolver
   }
   
+  // Error Helper
+  //------------------
+  
+
   // INfos when starting
   //------------------
   this.onStart {
-    
+
     this.engine.network.connectors.foreach {
-      case hc : HTTPConnector => 
-        
-        println("Website "+getDisplayName+ s" available at: http://localhost:${hc.port}${this.basePath}")
-        
-      case other => 
+      case hc: HTTPConnector =>
+
+        println("Website " + getDisplayName + s" available at: http://localhost:${hc.port}${this.basePath}")
+
+      case other =>
     }
-    
-    
+
+  }
+
+  // Lifecycle
+  //-----------
+  this.onInit {
+
+    this.findParentOfType[Site] match {
+      case Some(found) => 
+      case None => 
+        this.engine.lInit
+    }
+
+  }
+  this.onStart {
+
+    this.findParentOfType[Site] match {
+      case Some(found) => 
+        println("Found parent site: "+found)
+      case None => 
+        this.engine.lStart
+    }
+   /* this.parentIntermediary match {
+      case null =>
+        println("Starting FWApp")
+        //AssetsManager
+        this.engine.lStart
+      case other =>
+        println("Parent i: "+this.parentIntermediary)
+
+    }*/
+
+  }
+
+  this.onStop {
+    this.engine.lStop
   }
 }
 

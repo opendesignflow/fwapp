@@ -9,15 +9,20 @@ import java.net.URI
 import org.odfi.wsb.fwapp.FWappIntermediary
 import java.net.URLEncoder
 import org.odfi.wsb.fwapp.Site
+import scala.collection.convert.DecorateAsJava
+import scala.collection.convert.DecorateAsScala
 
 
-trait FWappView extends BasicHTMLView with HarvestedResource {
+trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava with DecorateAsScala {
   
   def getId = getClass.getCanonicalName
   
   def getUniqueId = getId+""+hashCode()
   
   //def getApp = this.findUpchainResource[FWappApp]
+  
+  def getFirstIntermediary =  this.findUpchainResource[FWappIntermediary]
+  
   def getApp = this.findUpchainResource[FWappIntermediary] match {
     case Some(baseIntermediary) => 
       baseIntermediary.findParentOfType[Site] 
@@ -38,6 +43,12 @@ trait FWappView extends BasicHTMLView with HarvestedResource {
   
   // URI/Path Utils
   //-----------
+  
+  def createFullDomainURI(pathInput:String) = {
+    
+    s"http://${request.get.getURLParameter("Host").get}${createAppURI(pathInput)}"
+    
+  }
   def createAppURI(pathInput:String) = { 
     
     val path = pathInput.replaceAll("//+","/")
@@ -71,7 +82,7 @@ trait FWappView extends BasicHTMLView with HarvestedResource {
         
       case Some(site : Site) if(!path.startsWith("/")) => 
         //println("Path is relative")
-        new URI(getViewPath+"/"+path)
+        new URI(getViewPath+path)
       case Some(site : Site) if(!path.startsWith(site.fullURLPath)) =>   
        // println("Path does not start with site base path: "+site.fullURLPath)
         new URI((site.fullURLPath+"/"+path).replaceAll("//+","/"))

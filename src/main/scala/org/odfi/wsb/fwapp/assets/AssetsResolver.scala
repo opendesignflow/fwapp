@@ -19,6 +19,15 @@ class AssetsResolver(path: String = "/") extends FWappIntermediary(path) {
     // this.assetsSources = this.assetsSources + (name -> source)
     source
   }
+  
+  /**
+   * Adds a ResourcesAssetSource to path, which searches in "" , so that you can add resources to project without specific sub folders
+   */
+  def addDefaultResourcesAssetSource(basePath:String) = {
+    addAssetsSource(basePath, new ResourcesAssetSource).addFilesSource("")
+  }
+  
+  def addResourcesAssetSource(basePath:String) = addAssetsSource(basePath, new ResourcesAssetSource).addFilesSource(basePath.stripPrefix("/"))
 
   def ifNoAssetSource(name: String)(cl: => Unit) = {
     this.intermediaries.find {

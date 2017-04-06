@@ -8,7 +8,7 @@ import com.idyria.osi.ooxoo.model.out.scala.ScalaProducer
 import com.idyria.osi.wsb.core.message.soap.Fault
 import com.idyria.osi.ooxoo.core.buffers.structural.io.sax.StAXIOBuffer
 import com.idyria.osi.ooxoo.core.buffers.structural.io.sax.STAXSyncTrait
-
+import com.idyria.osi.ooxoo.lib.json.JSonUtilTrait
 
 @producers(Array(
   new producer(value = classOf[ScalaProducer]),
@@ -23,8 +23,10 @@ object FrameworkModel extends ModelBuilder {
 
   "ActionsResult" is {
     withTrait(classOf[STAXSyncTrait])
+    withTrait(classOf[JSonUtilTrait])
     withTrait("org.odfi.wsb.fwapp.framework.json.JSONIOTrait")
     "ActionResult" multiple {
+      withTrait(classOf[JSonUtilTrait])
       "ID" ofType "string"
       "Success" ofType "boolean"
       "Result" ofType "string"
@@ -35,11 +37,10 @@ object FrameworkModel extends ModelBuilder {
 
     }
   }
-  
-  
+
   "Errors" is {
     withTrait(classOf[STAXSyncTrait])
-     withTrait("org.odfi.wsb.fwapp.framework.json.JSONIOTrait")
+    withTrait("org.odfi.wsb.fwapp.framework.json.JSONIOTrait")
     importElement(classOf[Fault].getCanonicalName).setMultiple
   }
 }

@@ -1,25 +1,35 @@
 fwapp.actions = {
 
+	callViewAction : function(actionName,sendData,reload) {
+		
+		//-- Add action to send data
+		sendData._action = actionName;
+		sendData._format = "json";
+		sendData._render = "none";
+		
+		//-- Create Path
+		var path = window.location;
+		
+		//-- Send
+		var deferred = $.get(path,sendData)
+		deferred.always(function() {
+			if(reload) {
+				location.reload();
+			}
+		});
+		
+	},
+		
 	callAction : function(sender, path, sendData) {
 		console.log("Call Action");
 		
 
+		
+		
+		// Request parameters
+		//---------------
+		var responseFormat = "text";
 		sendData = sendData || {};
-		
-		
-		
-		
-		
-		/*
-		 * $(data).each(function(key,val) {
-		 * 
-		 * var key = Object.keys(val)[0] var valScript = Object.values(val)[0]
-		 * console.log("Function name: "+valScript);
-		 * 
-		 * var val = window["'"+valScript+"'"](sender); //= eval(valScript);
-		 * 
-		 * console.log("Sending data: "+key+", value: "+val); });
-		 */
 		
 		// Look for form
 		//-----------
@@ -59,18 +69,29 @@ fwapp.actions = {
 		});
 		
 		
-		console.info("Running action, sending remote request for " + path);
-		console.info("Send data is: " + JSON.stringify(sendData));
 		
+		
+		// Make JSON if no reload
+		//-----------
+		if ($(sender).attr("reload"))  {
+			reload = true;
+		} else {
+			reload = false;
+		}
+			
+		if (!reload) {
+			sendData._format = "json";
+			responseFormat = "json";
+		}
 		
 		// Add Send Data to path
 		//--------------------------
-		$(Object.keys(sendData)).each(function(i,e) {
+		/*$(Object.keys(sendData)).each(function(i,e) {
 			
 			console.log("Found send data: "+e);
 			path = path+"&"+e+"="+encodeURI(sendData[e]);
 			
-		});
+		});*/
 		
 		
 		// Disable
@@ -84,7 +105,15 @@ fwapp.actions = {
 			fwapp.ui.waitStart(sender);
 		}
 		
-		var deffered = $.get(path);
+		
+		
+		// Send
+		//-------------
+		console.info("Running action, sending remote request for " + path);
+		console.info("Send data is: " + JSON.stringify(sendData));
+		
+		
+		var deffered = $.get(path,sendData,jQuery.noop,responseFormat);
 		deffered.done(function(data) {
 
 			console.log("Done..." + data.responseText);
@@ -122,8 +151,9 @@ fwapp.actions = {
 			fwapp.ui.enable(sender);
 			
 			console.log("Error in action :" + data.responseText);
+			var error = $.parseJSON(data.responseText);
 
-			fwapp.ui.errorFor(sender, data.responseText);
+			fwapp.ui.errorFor(sender, error);
 			/*
 			 * if (localWeb.faultFor(sender, data.responseText)==false) {
 			 * $(sender).html(data.responseText); }

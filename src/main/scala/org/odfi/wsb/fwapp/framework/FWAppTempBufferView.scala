@@ -69,8 +69,28 @@ trait FWAppTempBufferView extends FWAppValueBindingView {
     case Some(v) =>
       throw new RuntimeException(s"Getting input buffer value for $name failed because requested type $tag does not match value's ${v.getClass()}")
   }
+  
+  /**
+   * Run closure if value is defined
+   */
+  def onTempBufferValue[VT <: Any : ClassTag](name: String)(cl : VT => Any) = getTempBufferValue[VT](name) match {
+    case Some(v) => cl(v)
+    case None => 
+  }
+  
 
+  /**
+   * Save value, remove all values which start with name. to allow hierarchical usage of variables 
+   */
   def putToTempBuffer(name: String, v: Any) = {
+    
+    // Clean 
+    tempBuffer = tempBuffer.filterNot {
+      case (k,value) if (name==k && k.startsWith(name+".")) => true
+      case other => false
+    }
+    
+    // Set value
     tempBuffer = tempBuffer.updated(name, v)
   }
 

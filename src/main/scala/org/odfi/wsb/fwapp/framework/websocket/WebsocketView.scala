@@ -8,6 +8,24 @@ import com.idyria.osi.ooxoo.core.buffers.structural.ElementBuffer
 
 trait WebsocketView extends FWAppFrameworkView {
 
+  // Add JS
+  //---------------
+  this.addLibrary("fwapp") {
+    case (Some(l), target) =>
+      onNode(target) {
+        
+        //-- Make sure Session is created
+        this.request.get.getSession
+        
+        script(createAssetsResolverURI("/fwapp/websocket/websocket.js")) {
+
+        }
+      }
+
+    case other =>
+  }
+  
+  
   def getWebsocketIntermediary = this.parentResource.get.asInstanceOf[FWAppViewIntermediary].parentIntermediary.intermediaries.collectFirst {
     case i: WebsocketPathIntermediary => i
   } match {
@@ -42,22 +60,7 @@ trait WebsocketView extends FWAppFrameworkView {
     }
   }
 
-  // Add JS
-  //---------------
-  this.addLibrary("fwapp") {
-    case (Some(l), target) =>
-      onNode(target) {
-        
-        //-- Make sure Session is created
-        this.request.get.getSession
-        
-        script(createAssetsResolverURI("/fwapp/websocket.js")) {
-
-        }
-      }
-
-    case other =>
-  }
+  
 
   // Send backend Message
   //------------------------
@@ -71,6 +74,7 @@ trait WebsocketView extends FWAppFrameworkView {
         wi.getInterface(req) match {
           case Some(interface) =>
             interface.writeSOAPPayload(elt)
+            interface.nc.waitForInputPayload(1000)
           case None =>
             println(s"Sending Back message not possible, request and websocket intermediary (${wi.hashCode()}) set, but no WS interface for session: " + req.getSession)
         }
