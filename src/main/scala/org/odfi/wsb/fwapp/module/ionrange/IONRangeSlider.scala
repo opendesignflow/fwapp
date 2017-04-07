@@ -37,7 +37,7 @@ trait IONRangeSlider extends JQueryView with FWAppFrameworkView {
 
   }
 
-  // Create Range Slider
+  // Create Normal sliders Slider
   //--------------
 
   def ionSlider(min: Int, max: Int, value: IntegerBuffer)(cl: => Any): Input[HTMLElement, _] = {
@@ -89,6 +89,56 @@ trait IONRangeSlider extends JQueryView with FWAppFrameworkView {
     i
 
   }
+  
+  def ionSliderBind(min: Long, max: Long,init:Long)(update: Long => Unit) :  Input[HTMLElement, Input[HTMLElement, _]] = {
+    val i = ionSliderBind(min.toDouble,max.toDouble,init.toDouble) {
+      v => update(v.toLong)
+    }
+    onNode(i) {
+       data("step" -> "1")
+    }
+    
+    i
+  }
+  def ionSliderBind(min: Double, max: Double,init:Double)(update: Double => Unit) :  Input[HTMLElement, Input[HTMLElement, _]] = {
+    
+    var i = input {
+      id("ion-range-slider-" + currentNode.hashCode())
+      data("type" -> "single")
+      data("min" -> min)
+      data("max" -> max)
+      data("from" -> init)
+      data("step" -> "0.1")
+      
+      
+    }
+
+    var updateFromAction = this.getActionString {
+
+      //println(s"Updating from: "+request.get.getURLParameter("from"))
+      update(request.get.getURLParameter("from").get.toDouble)
+   }
+
+    script(s"""
+      $$(function() {
+        
+        var slider = $$("#${i.getId}").ionRangeSlider();
+        slider.on("change",function() {
+          var from = $$(this).data("from");
+          //console.log("Slider updated: "+from);
+          ${createJSCallActionWithData(updateFromAction, data = List("from" -> "from"))};
+        });
+        
+      });
+      
+      """)
+
+    i
+    
+  }
+  
+  // Create Range Slider
+  //--------------
 
   def ionRangeSlider(min: Int, max: Int, from: IntegerBuffer, to: IntegerBuffer)(cl: => Any): Input[HTMLElement, _] = {
 
