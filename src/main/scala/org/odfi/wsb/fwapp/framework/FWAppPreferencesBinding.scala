@@ -7,7 +7,7 @@ trait FWAppPreferencesBinding extends FWAppValueBindingView {
 
   def inputToPreference[V](p: Preferences, key: String, default: V)(cl: V => Unit)(implicit tag: ClassTag[V]) = {
 
-    input {
+    val i = input {
 
       //-- Set Default
       default.isInstanceOf[Boolean] match {
@@ -43,7 +43,11 @@ trait FWAppPreferencesBinding extends FWAppValueBindingView {
           cl(value)
       })
     }
-
+    
+    //-- Call CL once 
+    
+    
+    i
   }
 
   /**
@@ -61,13 +65,13 @@ trait FWAppPreferencesBinding extends FWAppValueBindingView {
       case None => default
     }
 
-    select {
+    val s = select {
 
       // set values
       objects.foreach {
         case (obj, displayName) =>
           option(obj.toString()) {
-            if (obj.toString() == prefValue.toString()) {
+            if (obj.toString() == prefValue.toString() || displayName == prefValue.toString() ) {
               isSelected
             }
             text(displayName)
@@ -98,6 +102,9 @@ trait FWAppPreferencesBinding extends FWAppValueBindingView {
 
     //-- Run once with actual found value
     cl(currentObjectValue)
+    
+    // Return select HTML
+    s
   }
 
 }
