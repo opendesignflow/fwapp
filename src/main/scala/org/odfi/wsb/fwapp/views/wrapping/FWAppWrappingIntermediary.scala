@@ -13,9 +13,13 @@ import org.odfi.wsb.fwapp.FWappIntermediary
 
 class FWAppWrappingIntermediary extends FWappIntermediary("/") with FWAppCatchAllView {
 
-  //-- Extract ID 
-  var extractId = "page-body"
-  var targetPart = "page"
+
+  //-- Content to part
+  var sourceIDToPartMapping = Map[String, String]()
+
+  def mapSourceIDToPart(t: (String, String)) = {
+    sourceIDToPartMapping = sourceIDToPartMapping + t
+  }
 
   //-- Use Resource Resolver to get files
   var resourceResolver = new ResourcesAssetSource
@@ -27,7 +31,7 @@ class FWAppWrappingIntermediary extends FWappIntermediary("/") with FWAppCatchAl
     __htmlView = Some(cl)
   }
   def htmlView = __htmlView
-  
+
   this.acceptAllDown
   this.onDownMessage {
     case req if (req.path.endsWith(".html")) =>
@@ -36,7 +40,7 @@ class FWAppWrappingIntermediary extends FWappIntermediary("/") with FWAppCatchAl
       //resourceResolver.down(req)
 
       println(s"Got message: " + req)
-      println("Searching in: "+this.resourceResolver.fileSources)
+      println("Searching in: " + this.resourceResolver.fileSources)
 
     case req =>
   }
@@ -44,41 +48,58 @@ class FWAppWrappingIntermediary extends FWappIntermediary("/") with FWAppCatchAl
   this.onUpMessage[HTTPResponse] {
     case msg if (msg.relatedMessage.get.asInstanceOf[HTTPRequest].path.endsWith(".html")) =>
 
-      println(s"Transform HTML here")
-      var str = new String(msg.content.array())
+      try {
+        val p = msg.relatedMessage.get.asInstanceOf[HTTPRequest].path
+        println(s"Transform HTML here: " + p)
+        var str = new String(msg.content.array())
 
-      //println(str)
+        //println(str)
 
-      var htmlDocument = Jsoup.parse(str)
-      var elements = htmlDocument.select("#" + extractId)
-      elements.size() match {
-        case 0 =>
-          
-        case other =>
-          println(s"Found Element")
+        var htmlDocument = Jsoup.parse(str)
 
-          var retainedElement = elements.first()
+        //-- Create target view
+        //-- Create target view
+        this.htmlView match {
+          case Some(viewClass) =>
+            println("Found View class")
 
-          //println(retainedElement.toString())
+            // prepare view
+            var viewInstance = viewClass.newInstance()
+            viewInstance.request = Some(msg.relatedMessage.get.asInstanceOf[HTTPRequest])
+            viewInstance.deriveFrom(this)
 
-          //-- Create target view
-          this.htmlView match {
-            case Some(viewClass) =>
-              var viewInstance = viewClass.newInstance()
-              viewInstance.request = Some(msg.relatedMessage.get.asInstanceOf[HTTPRequest])
-              viewInstance.deriveFrom(this)
-              viewInstance.definePart(targetPart) {
-                new JSoupElementNode[HTMLElement,JSoupElementNode[_,_]](retainedElement)
-              }
-              
-              
-              msg.htmlContent = viewInstance.rerender
+            // Map sources to  target parts
+            this.sourceIDToPartMapping.foreach {
+              case (source, target) =>
 
-              viewInstance.clean
-              
-            case None =>
-          }
+                var elements = htmlDocument.select("#" + source)
+                elements.size() match {
+                  case 0 =>
 
+                  case other =>
+                    println(s"Found Element: " + source)
+
+                    var foundElement = elements.first()
+                    foundElement.remove()
+
+                    viewInstance.definePart(target) {
+                      new JSoupElementNode[HTMLElement, JSoupElementNode[_, _]](foundElement)
+                    }
+                }
+
+            }
+
+            //-- Render and set output
+            msg.htmlContent = viewInstance.rerender
+
+            viewInstance.clean
+
+          case None =>
+        }
+
+      } catch {
+        case e: Throwable =>
+          e.printStackTrace()
       }
 
     case msg =>
