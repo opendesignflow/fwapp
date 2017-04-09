@@ -80,7 +80,7 @@
 					<dependency>
 						<groupId>org.odfi.wsb</groupId>
 						<artifactId>wsb-core</artifactId>
-						<version>3.3.0</version>
+						<version>3.3.1-SNAPSHOT</version>
 					</dependency>
 				</dependencies>
 				<executions>
