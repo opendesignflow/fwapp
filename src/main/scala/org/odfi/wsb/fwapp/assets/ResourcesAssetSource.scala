@@ -550,15 +550,15 @@ object ResourcesAssetSource {
               var wr = new WeakReference(bytes)*/
 
               var is = url.openStream()
-              var bytes = TeaIOUtils.swallow(is)
+              var bytes = ByteBuffer.wrap(TeaIOUtils.swallow(is))
               /*var bb = ByteBuffer.allocateDirect(bytes.length)
               bb.put(bytes)
               bb.flip();
               bytes= null*/
-              var wr = new WeakReference(ByteBuffer.wrap(bytes))
+              var wr = new WeakReference(bytes)
 
               cacheMap = cacheMap + (url.toExternalForm() -> wr)
-              wr.get.duplicate()
+              bytes.duplicate()
             case other =>
 
               var is = url.openStream()

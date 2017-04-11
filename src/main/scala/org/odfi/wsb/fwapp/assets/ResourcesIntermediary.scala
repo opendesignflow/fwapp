@@ -10,8 +10,9 @@ import java.net.URL
 import java.io.InputStream
 import java.io.File
 import java.lang.ref.WeakReference
+import org.odfi.wsb.fwapp.FWappIntermediary
 
-class ResourcesIntermediary(basePath: String) extends HTTPPathIntermediary(basePath) {
+class ResourcesIntermediary(basePath: String) extends FWappIntermediary(basePath) {
   name = "Simple File Resources"
 
   acceptDown[HTTPRequest] {
