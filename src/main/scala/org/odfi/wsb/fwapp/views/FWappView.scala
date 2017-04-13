@@ -15,11 +15,17 @@ import scala.collection.convert.DecorateAsScala
 
 trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava with DecorateAsScala {
   
+  // ID and so on
+  //---------------
   def getId = getClass.getCanonicalName
   
   def getUniqueId = getId+""+hashCode()
   
-  //def getApp = this.findUpchainResource[FWappApp]
+  
+  
+  // Environment utilities -> finding main Site and so on
+  //---------------
+
   
   def getFirstIntermediary =  this.findUpchainResource[FWappIntermediary]
   

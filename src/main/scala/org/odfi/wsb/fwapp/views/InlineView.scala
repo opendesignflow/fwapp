@@ -22,3 +22,13 @@ trait InlineView extends FWappView with DelayedInit {
   }
 
 }
+
+object InlineView {
+  
+  def apply(cl: => HTMLNode[HTMLElement,HTMLNode[_,_]]) = {
+    new InlineView {
+      cl
+    }
+  }
+  
+}

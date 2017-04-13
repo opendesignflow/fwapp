@@ -40,7 +40,7 @@ trait FWappTreeBuilder extends TLogSource {
       this
     }
 
-    def view[V <: FWappView](v: V): Unit = {
+    def view[V <: FWappView](v: V): IWrapper[I] = {
       view(v.getClass)
     }
 
@@ -229,17 +229,9 @@ trait FWappTreeBuilder extends TLogSource {
 
   def view[V <: FWappView](v: V): Unit = {
     view(v.getClass)
-
-    /* var viewIntermediary = new FWAppViewIntermediary
-    viewIntermediary.htmlView = v
-    
-    //viewIntermediary.basePath = this.fwappIntermediariesStack.head.fwappIntermediary.basePath
-
-    this.fwappIntermediariesStack.head.fwappIntermediary <= viewIntermediary
-
-    // this.fwappIntermediariesStack.head.fwappIntermediary.htmlView = v*/
-
   }
+  
+  
 
   // Intermediaries
   //-------------------
