@@ -7,8 +7,10 @@
 Welcome to FWapp Documentation  !
 #########################################
  
-.. contents:: Table of Contents
-
+.. contents::
+    :local:
+    
+    
 .. Use the Toc tree to list pages
 .. toctree::
     :hidden:
@@ -16,6 +18,7 @@ Welcome to FWapp Documentation  !
    
     quickstart/quickstart
     views/views
+    lib/lib
    
   
 

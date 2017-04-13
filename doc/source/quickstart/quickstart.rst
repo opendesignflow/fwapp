@@ -4,8 +4,8 @@
 Getting Started
 ############################
 
- 
-.. contents:: Table of Contents
+.. contents::
+    :local:
 
 Application Structure Basics
 ===============================

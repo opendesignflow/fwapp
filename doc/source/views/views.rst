@@ -4,8 +4,10 @@
 ############################
 Views
 ############################
-
+ 
 .. contents:: Table of Contents
+    :local:
+    
 .. toctree::
     :hidden:
      
@@ -13,7 +15,7 @@ Views
 
 
 As introduced in  :ref:`gettingstarted`, the actual Pages presented to the user are called "Views", as typically named in user interfaces
-following the concepts of `Model View Controller structure (MVC) <https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller>`
+following the concepts of `Model View Controller structure (MVC) <https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller>`_
 
 In the context of a Web Application, a View will be an HTML content returned to the browser.
 The FWAPP framework defines a base class which needs to be shared by all Views, and a set of Utility View Traits which add functionalities
@@ -38,7 +40,7 @@ The first step would be to declare a new Scala Class, and make it inherit the FW
 
 .. odfi.code::
     
-    package views
+    package example.views
 
     import org.odfi.wsb.fwapp.views.FWappView
     
@@ -46,11 +48,11 @@ The first step would be to declare a new Scala Class, and make it inherit the FW
       
     }
 
-Now let'create an application just like in the tutorial:
+Now let'create an application just like in the :ref:`gettingstarted` section :
 
 .. odfi.code::
     
-    package views
+    package example.views
 
     import org.odfi.wsb.fwapp.DefaultSiteApp
     
@@ -59,11 +61,14 @@ Now let'create an application just like in the tutorial:
       this.listen(8585)
       start
       
-      // map the Hello World to "/"
+      // map the Hello World to "/" by giving the class name
       "/" view classOf[HelloWorldView]
     }
 
-Navigate to
+Here you can notice that we have mapped to view to the Class Definition using **classOf[HelloWordView]**, and not to an instance
+of the **HelloWordView** class. The Request handler is responsible for building new instances of the Class as required.
+
+Now Navigate to
 
     http://localhost:8585/mysite
     
@@ -80,7 +85,7 @@ To add a simple HTML structure to our View, we can update our view like this:
 
 .. odfi.code::
     
-    package views
+    package example.views
 
     import org.odfi.wsb.fwapp.views.FWappView
     
@@ -109,6 +114,13 @@ To add a simple HTML structure to our View, we can update our view like this:
       
     }
     
+
+Now restart the application and navigate again to:
+
+    http://localhost:8585/mysite
+    
+You should see two titles
+
 
 
 Simple Templating using inheritance
