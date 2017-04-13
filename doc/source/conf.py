@@ -101,10 +101,10 @@ html_theme_path = [odfi_templates.mariana.get_html_theme_path()]
  
   
 html_theme_options = {
-    'left_logo': 'images/logo.png',
+    'left_logo': 'logo.png',
     'display_version': True,
     'highlightjs_style' : 'solarized_light'
-}
+} 
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

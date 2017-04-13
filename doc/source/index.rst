@@ -3,16 +3,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+#########################################
 Welcome to FWapp Documentation  !
-=========================================
+#########################################
+ 
+.. contents:: Table of Contents
 
 .. Use the Toc tree to list pages
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :hidden:
+ 
    
-
-Welcome to Fast Webapp Library (FWApp)
+    quickstart/quickstart
+    views/views
+   
+  
 
 This library provides a fullstack lightweight Web Application Framework for Scala.
 It is **not** based on Standard Java EE Servlet environment and Servelet Containers like Jetty or Tomcat.
@@ -24,38 +29,55 @@ FWApp provides its functionalities based on the following libraries:
 - The Indesign Library to manage components lifecycle (not needed to fully understand the library)
 - FWApp provides some higher level functions to easily create a Website and Web page views served using the WSB-CORE and WSB-WEBAPP functionalities.
 
+
+
+
+
 Quickstart
 --------------------
-
+  
 FWapp is accessible using Maven and the ODFI maven repositories::
 
     <groupId>org.odfi.wsb.fwapp</groupId>
     <artifactId>fwapp-core</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-The start a simple website, you can use the `Site` class
-
-.. odfi.code::
+The start a simple website, you can use the `DefaultSiteApp` class, which can be started like an normal scala App, and has a default asset resolver setup to server static files
+ 
+.. odfi.code:: scala
 
     package myapplication
     
+    import org.odfi.wsb.fwapp.DefaultSiteApp
+    
     // My site can be started as an application because of the "App" extension
     // Navigate to http://localhost:8082/mysite after starting
-    object MySite extends Site("/mysite") with App {
+    object MySite extends DefaultSiteApp("/mysite") {
         
         //-- Listen to a port
         this.listen(8082)
         
         
-        //-- Start
-        IndesignPlatform use this
-        IndesignPlatform.start
+         //-- Define the main view
+         //-- The InlineView constructor is used to define the HTML content
+        "/" view new InlineView {
+            
+            html {
+                head {
+                
+                }
+                
+                body {
+                    h1("Hello World") {
+                    
+                    }
+                }
+            }
+            
+        }
         
-        
-        //-- Define the main view
-        
-        
-    
+        //-- Start, always at the end
+        start
     }
 
 Now you can run this main, navigate to http://localhost:8082/mysite and see the Hello World displaying
