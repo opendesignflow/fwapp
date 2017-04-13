@@ -1,4 +1,4 @@
-package views
+package org.odfi.wsb.fwapp.examples.views
 
 import org.odfi.wsb.fwapp.views.FWappView
 

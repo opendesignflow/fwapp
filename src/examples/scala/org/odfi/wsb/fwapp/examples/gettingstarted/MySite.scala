@@ -1,4 +1,4 @@
-package gettingstarted
+package org.odfi.wsb.fwapp.examples.gettingstarted
 
 import org.odfi.wsb.fwapp.DefaultSiteApp
 import org.odfi.wsb.fwapp.views.InlineView
