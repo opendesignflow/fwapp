@@ -13,23 +13,21 @@ import com.idyria.osi.ooxoo.core.buffers.structural.AbstractDataBuffer
 
 import fmacros.FWAppMacros
 import fmacros.FWAppValueBindingViewTrait
- 
+
 trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingViewTrait {
 
-  
   def createJSBindAction(code: String, render: String = "none") = {
     s"fwapp.actions.bindValue(this,'${getViewPath}?_action=${code}',{_render:'none'})"
   }
 
   import reflect.runtime.universe._
 
-   
   //def bindValue[V](expr: V => Any): Unit  = macro FWAppMacros.bindValueImpl[V]
 
   def bindValueWithName[V](name: String, cl: V => Any)(implicit tag: ClassTag[V]): Unit = {
 
     //println(s"Inside bind value with name $name: "+tag)
-    
+
     var eventName = currentNode match {
       case t: Textarea[_, _] => "onchange"
       case other => "onchange"
@@ -63,7 +61,7 @@ trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingVie
         var action = this.getActionString {
 
           // Check URL parameters
-         
+
           request.get.getURLParameter(targetNode.attributes("name").toString) match {
 
             case Some(v) =>
@@ -118,9 +116,9 @@ trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingVie
 
         // Register Action
         var action = this.getActionString {
-          
-           //println("Processing String: "+targetNode.attributes("name")+" -> "+  request.get.getURLParameter(targetNode.attributes("name").toString))
-           
+
+          //println("Processing String: "+targetNode.attributes("name")+" -> "+  request.get.getURLParameter(targetNode.attributes("name").toString))
+
           // Check URL parameters
           request.get.getURLParameter(targetNode.attributes("name").toString) match {
 
@@ -148,7 +146,7 @@ trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingVie
         currentNode.attributes.get("name") match {
           case Some(name) => name
           case None =>
-            +@("name" ->name)
+            +@("name" -> name)
         }
 
         // Register Action
@@ -179,18 +177,43 @@ trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingVie
     }
 
   }
-  
+
   // Utils
   //----------
-  def inputBind[V:ClassTag](cl: V => Any) = {
+  def inputBind[V: ClassTag](cl: V => Any) = {
     input {
       bindValue {
-        value : V => cl(value)
+        value: V => cl(value)
       }
     }
   }
 
+  def selectFromObjects[T](lst: List[(T, String)], current: String)(cl: T => Unit) = {
 
+    var foundSelected = false
+    select {
+
+      lst.foreach {
+        case (obj, value) =>
+
+          option(value) {
+            
+            //-- Preselect
+            if (value == current) {
+              +@("selected" -> "true")
+            }
+            
+          }
+
+      }
+      
+      bindValue {
+        v : String => 
+          cl(lst.find { case (obj,rv) => rv==v}.get._1)
+      }
+    }
+
+  }
 
 }
 
