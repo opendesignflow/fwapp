@@ -10,6 +10,7 @@ import com.idyria.osi.vui.html.Form
 import org.odfi.wsb.fwapp.assets.generator.AssetsGenerator
 import org.odfi.wsb.fwapp.assets.generator.AssetsGeneratorView
 import org.odfi.wsb.fwapp.framework.FWAppFrameworkView
+import scala.collection.mutable.ArrayBuffer
 
 trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIImplView with AssetsGeneratorView {
 
@@ -163,7 +164,8 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     }
   }
 
-  def semanticFieldNot(strings: List[String]) = {
+  def semanticFieldNot(strings: ArrayBuffer[String]) : Unit = semanticFieldNot(strings.toList)
+  def semanticFieldNot(strings: List[String]) : Unit = {
     currentNode.findParentOfType[Form[HTMLElement, _]] match {
       case Some(parent) =>
         data("semantic-validation-not", strings)
