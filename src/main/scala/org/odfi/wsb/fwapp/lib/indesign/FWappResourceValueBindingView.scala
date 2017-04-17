@@ -57,6 +57,14 @@ trait FWappResourceValueBindingView extends FWAppValueBufferView {
 
   // Utils to work with buffers
   //-------------
+  
+  def inputToBufferAfter500MS(b:XSDStringBuffer) = {
+    inputBindAfter500MSInit(b) {
+      str => 
+        b.set(str)
+    }
+  }
+  
   def inputBindAfter500MSInit(init: XSDStringBuffer)(cl: String => Unit) = {
     val realInit = init match {
       case null => null
