@@ -26,7 +26,7 @@ class Site(basePath: String) extends FWappIntermediary(basePath) with FWappApp {
 
   override def getDisplayName = siteName match {
     case Some(name) => name
-    case None => getClass.getName.replace("$", "")
+    case None => getClass.getSimpleName.replace("$", "")
   }
 
   this.engine.broker <= this
@@ -102,14 +102,29 @@ class Site(basePath: String) extends FWappIntermediary(basePath) with FWappApp {
   def useDefaultAssets = {
     "/assets" uses new AssetsResolver
   }
-  
+
   // Error Helper
   //------------------
-  
 
-  // INfos when starting
-  //------------------
+  // Lifecycle
+  //-----------
+  this.onInit {
+
+    this.findParentOfType[Site] match {
+      case Some(found) =>
+      case None =>
+        this.engine.lInit
+    }
+
+  }
   this.onStart {
+
+    this.findParentOfType[Site] match {
+      case Some(found) =>
+      //println("Found parent site: "+found)
+      case None =>
+        this.engine.lStart
+    }
 
     this.engine.network.connectors.foreach {
       case hc: HTTPConnector =>
@@ -118,29 +133,7 @@ class Site(basePath: String) extends FWappIntermediary(basePath) with FWappApp {
 
       case other =>
     }
-
-  }
-
-  // Lifecycle
-  //-----------
-  this.onInit {
-
-    this.findParentOfType[Site] match {
-      case Some(found) => 
-      case None => 
-        this.engine.lInit
-    }
-
-  }
-  this.onStart {
-
-    this.findParentOfType[Site] match {
-      case Some(found) => 
-        println("Found parent site: "+found)
-      case None => 
-        this.engine.lStart
-    }
-   /* this.parentIntermediary match {
+    /* this.parentIntermediary match {
       case null =>
         println("Starting FWApp")
         //AssetsManager
