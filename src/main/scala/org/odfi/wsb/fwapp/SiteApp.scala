@@ -5,12 +5,13 @@ import org.odfi.indesign.core.config.ooxoo.OOXOOConfigModule
 import java.io.File
 import org.odfi.indesign.core.harvest.HarvesterRegion
 import org.odfi.indesign.core.harvest.Harvest
+import org.odfi.wsb.fwapp.swing.SwingPanelSite
 
 trait DelayedIndesignStart extends DelayedInit {
 
  
 }
-class SiteApp(path: String) extends Site(path) with App {
+class SiteApp(path: String) extends SwingPanelSite(path) with App {
 
   /*override def delayedInit(body: => Unit) = {
 
