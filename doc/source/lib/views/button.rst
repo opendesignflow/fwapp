@@ -15,8 +15,9 @@ Action calling is an important part of the FWAPP framework, as it handles commun
 Those events are typically linked to a user interaction on the View, like clicking on a button, and should trigger a server-side function.
 
 For example, if we look at a button definition with and action definition:
-
-.. odfi.code:: scala
+  
+.. code-block:: scala
+    :linenos:
 
     button("Click Me") {
         
@@ -47,7 +48,8 @@ The button library is quite simple and is provided by the |scala.package.framewo
 
 Usage example:
 
-.. odfi.code:: scala
+.. code-block:: scala
+    :linenos:
 
     
     class MyView extends org.odfi.wsb.fwapp.framework.FWappFrameworkView {
@@ -83,7 +85,8 @@ buttonClick(text) { REMOTE CLOSURE }
 A button, whose provided closure is executed on click.
 This variant is useful for simple buttons linked to a remote action
     
-.. odfi.code:: scala
+.. code-block:: scala
+    :linenos:
    
     buttonClick("Click Me") {
                   
@@ -97,7 +100,8 @@ buttonClickReload(text) { REMOTE CLOSURE }
 
 This button works like the **buttonClick**, but will trigger a page reload after the remote closure is done.
 
-.. odfi.code:: scala
+.. code-block:: scala
+    :linenos:
 
     buttonClickReload("Click Me") {
                   
@@ -119,8 +123,11 @@ There are generally two ways to get user data:
 This is the way a classical web application would work, and is useful to collect a set of data which are relevant together.
 A typical example would be filling up a registration form for a user, where all the data has to be submitted at once and stay consistent.
 
-.. odfi.code:: html
+.. .. odfi.code:: html
     
+.. code-block:: html
+    :linenos:
+       
     <form>
         <input name="name"></input>
         <input name="lastname"></input>
@@ -148,7 +155,8 @@ The **bindValue** method needs a closure as input argument with the prototype ( 
 
 Example for a String:
 
-.. odfi.code:: scala
+.. code-block:: scala
+    :linenos:
     
     input {
         bindValue {
@@ -158,11 +166,12 @@ Example for a String:
                 // Code
                 println("User Entered: "+text)
         }
-    }
+    }   
 
 The **bindValue** takes care of configuring the input element for the user. For example, if a Boolean is requested, a checkbox will be created:
 
-.. odfi.code:: scala
+.. code-block:: scala
+    :linenos:
     
     input {
         bindValue {
