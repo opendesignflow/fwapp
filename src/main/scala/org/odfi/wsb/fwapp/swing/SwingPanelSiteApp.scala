@@ -22,6 +22,7 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseAdapter
 import java.awt.Desktop
 import java.net.URI
+import java.awt.Cursor
 
 class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
 
@@ -49,6 +50,7 @@ class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
             frame.add(svgPanel, BorderLayout.CENTER)
 
             var l = new JLabel(s"${getDisplayName} : http://localhost:${hc.port}${this.basePath}/")
+            l.setCursor(new Cursor(Cursor.HAND_CURSOR))
             l.setFont(new Font("Sans Serif", Font.BOLD, 22))
             l.addMouseListener(new MouseAdapter {
               override def mouseClicked(e: MouseEvent) = {
