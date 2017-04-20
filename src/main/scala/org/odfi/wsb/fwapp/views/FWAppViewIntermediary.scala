@@ -19,7 +19,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
 
   override def getDisplayName = htmlView match {
     case Some(v) if (viewPool.size > 0) => viewPool.head._2.getDisplayName
-    case other => super.getDisplayName
+    case other                          => super.getDisplayName
   }
 
   this.acceptDown[HTTPRequest] {
@@ -103,7 +103,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
             //-- Take from Session pool or create
             var isSessionBeforeRender = req.hasSession
             var view = isSessionBeforeRender match {
-              case true => viewFromPool(req.getSession.get)
+              case true  => viewFromPool(req.getSession.get)
               case false => instanciateView.get
             }
 
@@ -127,35 +127,77 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                     res.ID = actionName
                     frview.saveActionResult(actionName, res)
 
-                    frview.actions.get(actionName) match {
-                      case Some(action) =>
+                    // Split Actino to view path and action name
+                    val splittedAction = actionName.split("\\.")
+                    val viewsPath = splittedAction.dropRight(1)
+                    val actionId = splittedAction.last
 
-                        try {
+                    //-- Find target view
+                    var currentTestView = frview
+                    val foundViews = viewsPath.map {
+                      id =>
+                        currentTestView.hashCode.toString match {
+                          case same if (same == id) =>
 
-                          res.result = action._2(action._1).toString()
-                          res.success = true
+                            Some(currentTestView)
+                          case parent if (currentTestView.findDerivedResourceOfTypeAnd[FWAppFrameworkView](_.hashCode().toString == id).isDefined) =>
 
-                          //println("Action run")
-                        } catch {
-                          case e: Throwable =>
+                            val found = currentTestView.findDerivedResourceOfTypeAnd[FWAppFrameworkView](_.hashCode().toString == id).get
+                            currentTestView = found
+                            Some(found)
 
-                            //println("Error from actino: " + e.getLocalizedMessage)
+                          case other => None
+                        }
+                    }
+
+                    //-- Test
+                    foundViews.find(_.isEmpty) match {
+                      case Some(foundNone) =>
+                        
+                        res.success = false
+                        var error = res.errors.add
+                        error.message = "A View in action path is missing"
+                        
+                      case None =>
+
+                        val targetView = foundViews.last.get
+                        targetView.request = Some(req)
+                        targetView.cleanActionResults
+                        targetView.saveActionResult(actionName, res)
+
+                        //-- look up actions
+                        //println(s"Looking up action: "+actionId+" on view "+targetView.hashCode)
+                        targetView.actions.get(actionId) match {
+                          case Some(action) =>
+
+                            try {
+
+                              res.result = action._2(action._1).toString()
+                              res.success = true
+
+                              //println("Action run")
+                            } catch {
+                              case e: Throwable =>
+
+                                //println("Error from actino: " + e.getLocalizedMessage)
+
+                                res.success = false
+                                var error = res.errors.add
+                                error.message = e.getLocalizedMessage
+                                e.printStackTrace()
+
+                              /*var stackString = new StringWriter
+                            e.printStackTrace(new PrintWriter(stackString))
+                            error.stack = stackString.toString()*/
+                              //req.addError(e)
+                            }
+                          case None =>
 
                             res.success = false
                             var error = res.errors.add
-                            error.message = e.getLocalizedMessage
-                            
-                            /*var stackString = new StringWriter
-                            e.printStackTrace(new PrintWriter(stackString))
-                            error.stack = stackString.toString()*/
-                          //req.addError(e)
+                            error.message = s"Action $actionId Not Registed for view"
+
                         }
-                      case None =>
-
-                        res.success = false
-                        var error = res.errors.add
-                        error.message = "Action Not Registed for view"
-
                     }
 
                   case None =>
@@ -200,34 +242,32 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
             //-- Check errors
             //-- First action errors, then normal errors
             //---------------
-             //println("JSON: "+isJSONFormat)
+            //println("JSON: "+isJSONFormat)
             view match {
               case frview: FWAppFrameworkView if (frview.hasActionErrors && isJSONFormat) =>
 
-               
-                
                 //-- Clear request errors, because the current error has priority
                 req.clearErrors
-                
+
                 //-- Set Code
                 resp.code = 500
 
                 //-- Output errors
-                var res = frview.actionResults.head._2 
+                var res = frview.actionResults.head._2
                 resp.contentType = "application/json"
                 resp.content = ByteBuffer.wrap(("{" + res.toJSONString + "}").getBytes)
-              case frview: FWAppFrameworkView => 
-                
-                 /*println("No errors: "+frview.hasActionErrors)
+              case frview: FWAppFrameworkView =>
+
+              /*println("No errors: "+frview.hasActionErrors)
                  frview.actionResults.foreach {
                    case (name,res) => 
                      println("R: "+res.success)
                  }*/
-                
-              case other =>
+
+              case other                      =>
 
             }
-            
+
             req.hasErrors match {
 
               //-- For JSON return, send back JSON report
@@ -294,8 +334,6 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
               case other =>
             }*/
 
-            
-
             //-- Check session
             //-- If Session is present after rendering, add to pool
             (isSessionBeforeRender, req.hasSession) match {
@@ -309,7 +347,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
               case (true, false) => removeViewFromPool(view)
 
               ///-- Others change nothing
-              case _ =>
+              case _             =>
 
             }
 

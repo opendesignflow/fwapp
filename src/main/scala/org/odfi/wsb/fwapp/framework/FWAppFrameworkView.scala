@@ -6,23 +6,13 @@ import org.odfi.wsb.fwapp.views.LibraryView
 import org.odfi.wsb.fwapp.assets.AssetsManager
 import org.odfi.wsb.fwapp.module.jquery.JQueryView
 import com.idyria.osi.wsb.webapp.http.message.HTTPRequest
+import org.odfi.wsb.fwapp.views.FWappView
 
 trait FWAppFrameworkView extends JQueryView  {
 
   this.addLibrary("fwapp") {
     case (Some(source), target) =>
       onNode(target) {
-
-        /*AssetsManager.findAssetSource("jquery") match {
-          case Some(sourceForJquery) =>
-            script(createAssetsResolverURI(sourceForJquery.basePath + "/fwapp/external/jquery/jquery.js")) {
-
-            }
-          case None =>
-            script(createAssetsResolverURI("/fwapp/external/jquery/jquery-3.1.1.min.js")) {
-
-            }
-        }*/
 
         script(createAssetsResolverURI("/fwapp/framework.js")) {
 
@@ -58,6 +48,9 @@ trait FWAppFrameworkView extends JQueryView  {
     this.actionResults = this.actionResults + (code -> res)
   }
 
+  /**
+   * only function creating action code and registering it
+   */
   def getActionString(cl: => Any, codeprefix: String = ""): String = {
 
     //-- Make sure a session was set
@@ -66,14 +59,22 @@ trait FWAppFrameworkView extends JQueryView  {
     //-- Get Hash code
     val node = currentNode
     var code = codeprefix + "" + node.hashCode()
+    
+    //-- Create action path to current view
+    val parentViewsStrings = this.mapUpResources[FWappView,String] {
+      view => 
+        view.hashCode.toString()
+    }
+    
+    val pathToCurrentView = (parentViewsStrings.reverse :+ this.hashCode().toString).mkString(".")
 
     //-- Register 
     this.actions = actions + (code.toString -> (node, { node =>
       cl
     }))
 
-    // println(s"Registered action $code on "+v.viewPath)
-    code.toString
+    /// println(s"Registered action $code on "+this.hashCode())
+    pathToCurrentView+"."+code.toString
 
   }
 
