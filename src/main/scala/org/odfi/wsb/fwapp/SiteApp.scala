@@ -34,6 +34,7 @@ class DefaultSiteApp(path: String) extends SiteApp(path)  {
   //-- Setup default assets
   val assetsManager = this.useDefaultAssets
 
+
   //-- Setup default config
   IndesignPlatorm use OOXOOConfigModule
   OOXOOConfigModule.configFolder = new File(s"config/$path")
@@ -46,6 +47,10 @@ class DefaultSiteApp(path: String) extends SiteApp(path)  {
     IndesignPlatorm use this
     IndesignPlatorm.start
   }*/
+  
+  this.onStart {
+    assetsManager.addDefaultResourcesAssetSource("/nadc")
+  }
 
 }
 

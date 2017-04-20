@@ -26,7 +26,7 @@ class Site(basePath: String) extends FWappIntermediary(basePath) with FWappApp {
 
   override def getDisplayName = siteName match {
     case Some(name) => name
-    case None => getClass.getSimpleName.replace("$", "")
+    case None       => getClass.getSimpleName.replace("$", "")
   }
 
   this.engine.broker <= this
@@ -124,15 +124,18 @@ class Site(basePath: String) extends FWappIntermediary(basePath) with FWappApp {
       //println("Found parent site: "+found)
       case None =>
         this.engine.lStart
+
+        this.engine.network.connectors.foreach {
+          case hc: HTTPConnector =>
+
+            println("Website " + getDisplayName + s" available at: http://localhost:${hc.port}${this.basePath}")
+
+          case other =>
+
+            println("Website " + getDisplayName + "is master with no HTTP Connector, did you forget a call to listen(port) ?")
+        }
     }
 
-    this.engine.network.connectors.foreach {
-      case hc: HTTPConnector =>
-
-        println("Website " + getDisplayName + s" available at: http://localhost:${hc.port}${this.basePath}")
-
-      case other =>
-    }
     /* this.parentIntermediary match {
       case null =>
         println("Starting FWApp")
