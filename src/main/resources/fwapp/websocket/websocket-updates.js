@@ -1,6 +1,6 @@
 $(function() {
 	
-	fwapp.websocket.debug = true;
+	//fwapp.websocket.debug = false;
 	fwapp.websocket.makeEventConnection();
 	fwapp.websocket.onPushData("UpdateAttribute",function(payload) {
 		
