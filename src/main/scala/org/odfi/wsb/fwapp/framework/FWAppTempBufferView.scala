@@ -4,41 +4,48 @@ import scala.reflect.ClassTag
 import org.w3c.dom.html.HTMLElement
 
 trait FWAppTempBufferView extends FWAppValueBindingView {
-  
+
   // Temp Buffer
   //------------------
   var tempBuffer = Map[String, Any]()
+
+  def cleanTempBuffer = {
+    this.tempBuffer = this.tempBuffer.empty
+  }
   
-   /**
+  /**
    * Value will be set to temp buffer map
    */
-  def inputToTempBuffer[VT <: Any](name: String, value: String)(cl: => Any)(implicit tag: ClassTag[VT]) = {
+  def inputToTempBuffer[VT <: Any](name: String, value: VT)(cl: => Any)(implicit tag: ClassTag[VT]) = {
 
-    putToTempBuffer(name, value)
+
+    putToTempBuffer[VT](name, value)
+
+   // println(s"Input to temp buffer: " + tag.runtimeClass)
     val rcl = {
-      value : String => 
-        value.toString match {
-            case "" => tempBuffer = tempBuffer - name
-            case _ => tempBuffer = tempBuffer.updated(name, value)
-          }
+      value: VT =>
+
+       // println(s"Updating: " + value.getClass)
+        putToTempBuffer[VT](name, value)
+
+     
     }
-   
-    
+
     var node = input {
-      +@("value" -> value.toString)   
-      
-       bindValueWithName(name, rcl)
-      
+      +@("value" -> value.toString)
+
+      bindValueWithName[VT](name, rcl)
+
     }
     switchToNode(node, cl)
     node
   }
-  
-  
+
   def inputToTempBufferWithDefault[VT <: Any](name: String, default: VT)(cl: => Any)(implicit tag: ClassTag[VT]) = {
 
     //-- Set Default Value
     var actualValue = getTempBufferValue[VT](name) match {
+
       case None =>
         default
       case Some(v) =>
@@ -46,7 +53,7 @@ trait FWAppTempBufferView extends FWAppValueBindingView {
     }
 
     //-- Create UI
-    inputToTempBuffer[VT](name, actualValue.toString)(cl)
+    inputToTempBuffer[VT](name, actualValue)(cl)
 
   }
 
@@ -55,41 +62,51 @@ trait FWAppTempBufferView extends FWAppValueBindingView {
    */
   def getTempBufferValue[VT <: Any](name: String)(implicit tag: ClassTag[VT]): Option[VT] = this.tempBuffer.get(name) match {
     case None => None
+    case Some(v) if (tag.runtimeClass == classOf[Int] && v.getClass == classOf[Integer]) => Some(v.asInstanceOf[Integer].toInt.asInstanceOf[VT])
     case Some(v) if (tag.runtimeClass.isInstance(v)) => Some(v.asInstanceOf[VT])
     case Some(v) =>
       throw new RuntimeException(s"Getting input buffer value for $name failed because requested type $tag does not match value's ${v.getClass()}")
   }
-  
-   /**
+
+  /**
    * Assume Strig if class tag was not overriden
    */
-  def getTempBufferValueDefault[VT <: Any](name: String,default: VT)(implicit tag: ClassTag[VT]): VT = this.tempBuffer.get(name) match {
+  def getTempBufferValueDefault[VT <: Any](name: String, default: VT)(implicit tag: ClassTag[VT]): VT = this.tempBuffer.get(name) match {
     case None => default
+    case Some(v) if (tag.runtimeClass == classOf[Int] && v.getClass == classOf[Integer]) => v.asInstanceOf[Integer].toInt.asInstanceOf[VT]
     case Some(v) if (tag.runtimeClass.isInstance(v)) => v.asInstanceOf[VT]
     case Some(v) =>
       throw new RuntimeException(s"Getting input buffer value for $name failed because requested type $tag does not match value's ${v.getClass()}")
   }
-  
+
+  def getTempBufferValueOrSet[VT <: Any](name: String, default: => VT)(implicit tag: ClassTag[VT]): VT = this.tempBuffer.get(name) match {
+    case None =>
+      putToTempBuffer(name, default)
+      default
+    case Some(v) if (tag.runtimeClass == classOf[Int] && v.getClass == classOf[Integer]) => v.asInstanceOf[Integer].toInt.asInstanceOf[VT]
+    case Some(v) if (tag.runtimeClass.isInstance(v))                                     => v.asInstanceOf[VT]
+    case Some(v) =>
+      throw new RuntimeException(s"Getting input buffer value for $name failed because requested type $tag does not match value's ${v.getClass()}")
+  }
   /**
    * Run closure if value is defined
    */
-  def onTempBufferValue[VT <: Any : ClassTag](name: String)(cl : VT => Any) = getTempBufferValue[VT](name) match {
+  def onTempBufferValue[VT <: Any: ClassTag](name: String)(cl: VT => Any) = getTempBufferValue[VT](name) match {
     case Some(v) => cl(v)
-    case None => 
+    case None    =>
   }
-  
 
   /**
-   * Save value, remove all values which start with name. to allow hierarchical usage of variables 
+   * Save value, remove all values which start with name. to allow hierarchical usage of variables
    */
-  def putToTempBuffer(name: String, v: Any) = {
-    
+  def putToTempBuffer[VT](name: String, v: VT) = {
+
     // Clean 
     tempBuffer = tempBuffer.filterNot {
-      case (k,value) if (name==k && k.startsWith(name+".")) => true
+      case (k, value) if (name == k && k.startsWith(name + ".")) => true
       case other => false
     }
-    
+
     // Set value
     tempBuffer = tempBuffer.updated(name, v)
   }
