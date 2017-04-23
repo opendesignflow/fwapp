@@ -11,8 +11,14 @@ import org.odfi.wsb.fwapp.assets.generator.AssetsGenerator
 import org.odfi.wsb.fwapp.assets.generator.AssetsGeneratorView
 import org.odfi.wsb.fwapp.framework.FWAppFrameworkView
 import scala.collection.mutable.ArrayBuffer
+import com.idyria.osi.ooxoo.core.buffers.structural.ElementBuffer
+import com.idyria.osi.ooxoo.core.buffers.datatypes.XSDStringBuffer
+import com.idyria.osi.ooxoo.core.buffers.datatypes.DoubleBuffer
+import com.idyria.osi.ooxoo.core.buffers.structural.xelement
+import com.idyria.osi.vui.html.Div
+import org.odfi.wsb.fwapp.framework.websocket.WebsocketView
 
-trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIImplView with AssetsGeneratorView {
+trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIImplView with AssetsGeneratorView with WebsocketView {
 
   this.addLibrary("semantic") {
     case (Some(source), target) =>
@@ -164,8 +170,8 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     }
   }
 
-  def semanticFieldNot(strings: ArrayBuffer[String]) : Unit = semanticFieldNot(strings.toList)
-  def semanticFieldNot(strings: List[String]) : Unit = {
+  def semanticFieldNot(strings: ArrayBuffer[String]): Unit = semanticFieldNot(strings.toList)
+  def semanticFieldNot(strings: List[String]): Unit = {
     currentNode.findParentOfType[Form[HTMLElement, _]] match {
       case Some(parent) =>
         data("semantic-validation-not", strings)
@@ -240,18 +246,18 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
   def semanticDivider = "ui divider " :: div()
 
   def semanticSticky = {
-    
+
     val nodeId = currentNode.getId
-    jqueryGenerateOnLoad("sticky-"+nodeId) match {
-      case Some(gen) => 
-        
+    jqueryGenerateOnLoad("sticky-" + nodeId) match {
+      case Some(gen) =>
+
         gen.println(s"""$$("#$nodeId").sticky();""")
         gen.close()
-      case None => 
+      case None =>
     }
-    
+
   }
-  
+
   // Tabs
   //----------------
   def semanticMakeTabId(str: String) = {
@@ -302,7 +308,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
         }
 
     }
-    
+
     semanticTabLoad
 
   }
@@ -355,6 +361,86 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
               |});
               |""".stripMargin)
 
+  }
+
+  // Progress
+  //-----------------
+  class SemanticProgressUpdate extends ElementBuffer {
+
+    @xelement
+    var TargetID: XSDStringBuffer = _
+
+    @xelement
+    var Message: XSDStringBuffer = _
+
+    @xelement
+    var Percent: DoubleBuffer = _
+
+  }
+
+  class SemanticProgressBar(val d: Div[_, _]) {
+
+    var defaultMessage: Option[String] = None
+
+    def update(p: Double) = {
+      val tp = if (p > 100.0) {
+        100.0
+      } else {
+        p
+      }
+
+      val pmessage = new SemanticProgressUpdate
+      pmessage.TargetID = d.getId
+      pmessage.Percent = tp
+      defaultMessage match {
+        case Some(m) =>
+          pmessage.Message = m
+        case None =>
+      }
+      //println(s"Progress Bar sending data...")
+      broadCastSOAPBackendMessage(pmessage)
+
+    }
+  }
+
+  def semanticProgress(pid: String) = {
+
+    new SemanticProgressBar("ui indicating progress" :: div {
+      id("progress-" + pid)
+      +@("style" -> "display:none")
+      "bar" :: div {
+        importHTML(<div class="progress"></div>)
+      }
+      "label" :: div {
+
+      }
+
+      jqueryGenerateOnLoad("progress-" + pid) match {
+        case Some(generator) =>
+
+          generator.println(s"""|
+                                |console.log("Semantic Progress");
+                                |$$("#progress-$pid").progress();
+                                |
+                                |//fwapp.websocket.debug = true;
+                                |fwapp.websocket.makeEventConnection();
+                                |fwapp.websocket.onPushData("SemanticProgressUpdate",function(payload) {
+                                |  
+                                |  $$("#progress-$pid").show();
+                                |  $$("#progress-$pid").progress({percent: payload.Percent});
+                                |  if(payload.Message) {
+                                |    $$("#progress-$pid .label").text(payload.Message);
+                                |  }
+                                |  
+                                |});
+                                |
+                                |
+                                |""".stripMargin)
+          generator.close()
+
+        case None =>
+      }
+    })
   }
 
 }
