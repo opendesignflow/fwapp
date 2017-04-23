@@ -67,6 +67,27 @@ fwapp.ui = {
 
 		
 
+	},
+	
+	// Sizing
+	//-------------------
+	heightToRatio : function(elt,ratio) {
+		
+		console.log("Adapting size: "+ratio+", of: "+elt+" -> "+$(elt).attr("id")+" -> "+$(elt).width());
+		//$(elt).height($(elt).width()*ratio);
 	}
 
 };
+
+$(function() {
+	
+	// load
+	$('[data-ui-load]').each(function(i,elt) {
+		
+		console.log("Adapting size of: "+elt);
+		eval($(elt).data("ui-load"));
+		
+	});
+	
+	
+});
