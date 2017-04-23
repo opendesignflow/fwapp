@@ -51,6 +51,27 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
   //--------
   var request: Option[HTTPRequest] = None
 
+  /**
+   * Returns Some or None with value of URL paramter in request (GET or url encoded POST)
+   */
+  def withRequestParameter(name:String) = request match {
+    case Some(r) if (r.getURLParameter(name).isDefined) => r.getURLParameter(name)
+    case other => None
+  }
+  
+  def withRequestParameterAndResult[T](name:String)(search:String => Option[T]) : Option[T] = {
+    withRequestParameter(name) match {
+      case Some(value) =>
+        search(value)
+      case None => None
+    }
+  }
+  
+  def getURLValue(name:String,d:Int) = withRequestParameter(name) match {
+    case None => d 
+    case Some(v) => v.toInt 
+  }
+  
   // URI/Path Utils
   //-----------
 
