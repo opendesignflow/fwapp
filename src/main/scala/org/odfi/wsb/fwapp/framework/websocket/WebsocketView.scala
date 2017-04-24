@@ -15,7 +15,8 @@ trait WebsocketView extends FWAppFrameworkView {
       onNode(target) {
         
         //-- Make sure Session is created
-        this.request.get.getSession
+        ensureSession
+        //this.request.get.getSession
         
         script(createAssetsResolverURI("/fwapp/websocket/websocket.js")) {
 
@@ -26,7 +27,7 @@ trait WebsocketView extends FWAppFrameworkView {
   }
   
   
-  def getWebsocketIntermediary = this.parentResource.get.asInstanceOf[FWAppViewIntermediary].parentIntermediary.intermediaries.collectFirst {
+  def getWebsocketIntermediary = this.findUpchainResource[FWAppViewIntermediary].get.parentIntermediary.intermediaries.collectFirst {
     case i: WebsocketPathIntermediary => i
   } match {
 
@@ -43,7 +44,8 @@ trait WebsocketView extends FWAppFrameworkView {
   //--------------
   this.onParentResourceAdded {
     println("**** Adding Websocket intermediary")
-    val p = this.parentResource.get.asInstanceOf[FWAppViewIntermediary]
+    val p = this.findUpchainResource[FWAppViewIntermediary].get
+    //val p = this.parentResource.get.asInstanceOf[FWAppViewIntermediary]
     p.intermediaries.find {
       case i: WebsocketPathIntermediary => true
       case i => false

@@ -381,24 +381,28 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
   class SemanticProgressBar(val d: Div[_, _]) {
 
     var defaultMessage: Option[String] = None
+    var lastValue: Double = 0.0
 
-    def update(p: Double) = {
-      val tp = if (p > 100.0) {
+    def update(p: Int) = {
+      /*val tp = if (p > 100.0) {
         100.0
       } else {
         p
-      }
+      }*/
 
-      val pmessage = new SemanticProgressUpdate
-      pmessage.TargetID = d.getId
-      pmessage.Percent = tp
-      defaultMessage match {
-        case Some(m) =>
-          pmessage.Message = m
-        case None =>
+      if (p != lastValue) {
+        lastValue = p
+        val pmessage = new SemanticProgressUpdate
+        pmessage.TargetID = d.getId
+        pmessage.Percent = p
+        defaultMessage match {
+          case Some(m) =>
+            pmessage.Message = m
+          case None =>
+        }
+        //println(s"Progress Bar sending data...")
+        broadCastSOAPBackendMessage(pmessage)
       }
-      //println(s"Progress Bar sending data...")
-      broadCastSOAPBackendMessage(pmessage)
 
     }
   }
