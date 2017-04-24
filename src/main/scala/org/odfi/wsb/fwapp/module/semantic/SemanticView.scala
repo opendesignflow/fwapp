@@ -24,22 +24,22 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     case (Some(source), target) =>
       onNode(target) {
         stylesheet(createAssetsResolverURI(s"/semantic/semantic.min.css")) {
-
+          +@("async" -> true)
         }
 
         script(createAssetsResolverURI(s"/semantic/semantic.min.js")) {
-
+          //+@("async" -> true)
         }
       }
     case (None, target) =>
 
       onNode(target) {
         stylesheet(createAssetsResolverURI(s"/fwapp/external/semantic/semantic.min.css")) {
-
+          +@("async" -> true)
         }
 
         script(createAssetsResolverURI(s"/fwapp/external/semantic/semantic.min.js")) {
-
+         // +@("async" -> true)
         }
       }
 
