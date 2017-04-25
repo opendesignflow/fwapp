@@ -5,6 +5,9 @@ import scala.reflect.ClassTag
 
 trait FWAppPreferencesBinding extends FWAppValueBindingView {
 
+  /**
+   * CL is always called with default value
+   */
   def inputToPreference[V](p: Preferences, key: String, default: V)(cl: V => Unit)(implicit tag: ClassTag[V]) = {
 
     val i = input {
@@ -22,7 +25,7 @@ trait FWAppPreferencesBinding extends FWAppValueBindingView {
       }
 
       //-- Bind
-      bindValueWithName[V](key, {
+      val bindClosure = bindValueWithName[V](key, {
 
         value: V =>
 
@@ -36,17 +39,30 @@ trait FWAppPreferencesBinding extends FWAppValueBindingView {
             case value: Double =>
               p.putDouble(key, value)
             case value =>
-              println("PREF STRING Update: " + value)
+              //println("PREF STRING Update: " + value)
               p.put(key, value.toString())
           }
 
           cl(value)
       })
+
+      //--- Call CL
+      default match {
+        case value: Boolean =>
+          cl(p.getBoolean(key,value).asInstanceOf[V])
+        case value: Int =>
+         cl(p.getInt(key,value).asInstanceOf[V])
+        case value: Long =>
+          cl(p.getLong(key,value).asInstanceOf[V])
+        case value: Double =>
+          cl(p.getDouble(key,value).asInstanceOf[V])
+        case value =>
+          cl(p.get(key,value.toString).asInstanceOf[V])
+      }
+     
+
     }
-    
-    //-- Call CL once 
-    
-    
+
     i
   }
 
@@ -62,7 +78,7 @@ trait FWAppPreferencesBinding extends FWAppValueBindingView {
       case (obj, dname) => obj.toString == prefValue
     } match {
       case Some((obj, dname)) => obj
-      case None => default
+      case None               => default
     }
 
     val s = select {
@@ -71,7 +87,7 @@ trait FWAppPreferencesBinding extends FWAppValueBindingView {
       objects.foreach {
         case (obj, displayName) =>
           option(obj.toString()) {
-            if (obj.toString() == prefValue.toString() || displayName == prefValue.toString() ) {
+            if (obj.toString() == prefValue.toString() || displayName == prefValue.toString()) {
               isSelected
             }
             text(displayName)
@@ -96,13 +112,13 @@ trait FWAppPreferencesBinding extends FWAppValueBindingView {
           //-- Update
           p.put(key, value)
 
-      } 
+      }
 
     }
 
     //-- Run once with actual found value
     cl(currentObjectValue)
-    
+
     // Return select HTML
     s
   }

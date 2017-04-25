@@ -175,6 +175,8 @@ trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingVie
       case None =>
         sys.error("Bind value on supports input types: " + bindSupportedTypes)
     }
+    
+    cl
 
   }
 
