@@ -47,7 +47,7 @@ class DefaultSiteApp(path: String) extends SiteApp(path) {
   }*/
 
   this.onStart {
-    assetsManager.addDefaultResourcesAssetSource("/nadc")
+    assetsManager.addDefaultResourcesAssetSource(path)
   }
 
   // Utilities
