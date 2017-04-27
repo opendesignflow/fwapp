@@ -33,12 +33,14 @@ fwapp.actions = {
 		
 		// Look for form
 		//-----------
+		//FIXME
 		if ($(sender).parents('form').length) {
 			
 			var parentForm = $(sender).parents('form');
 			
 			console.info("Inside form: "+parentForm.serialize())
-			path = path+"&"+parentForm.serialize()
+			//path = path+"&"+parentForm.serialize()
+			
 			//sendData.form = parentForm.serializeArray();
 		}
 		
@@ -113,9 +115,10 @@ fwapp.actions = {
 		console.info("Send data is: " + JSON.stringify(sendData));
 		
 		
-		var deffered = $.get(path,sendData,jQuery.noop,responseFormat);
+		var deffered = $.post(path,sendData,jQuery.noop,responseFormat);
 		deffered.done(function(data) {
 
+			console.log("Done..." + JSON.stringify(data));
 			console.log("Done..." + data.responseText);
 
 			fwapp.ui.enable(sender);

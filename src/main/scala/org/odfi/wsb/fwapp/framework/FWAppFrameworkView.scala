@@ -84,9 +84,10 @@ trait FWAppFrameworkView extends JQueryView  {
   def createJSCallAction(code: String, render: String = "none") = {
 
     //-- Make data json string
-    var dataString = (List("_format" -> "json")).map { case (name, value) => s""" "$name": $value """ }.mkString(",")
+    var dataString = (List("_action" -> code, "_render" -> render,"_format" -> "json")).map { case (name, value) => s""" $name : '$value' """ }.mkString(",")
 
-    s"fwapp.actions.callAction(this,'${getViewPath}?_action=${code}&_render=none',{$dataString})"
+    //s"fwapp.actions.callAction(this,'${getViewPath}?_action=${code}&_render=none',{$dataString})"
+    s"fwapp.actions.callAction(this,'${getViewPath}',{$dataString})"
   }
 
   def createJSCallActionWithData(code: String, data: List[(String, String)], render: String = "none") = {
@@ -164,7 +165,8 @@ trait FWAppFrameworkView extends JQueryView  {
 
     var actionCode = this.getActionString(cl)
     //+@("onclick" -> (s"fwapp.actions.callAction(this,'${createSpecialPath("action", actionCode)}')").noDoubleSlash)
-    +@("onclick" -> (s"fwapp.actions.callAction(this,'${getViewPath}?_action=${actionCode}&_render=none')"))
+    //+@("onclick" -> (s"""fwapp.actions.callAction(this,'${getViewPath}',{ '_action' : '${actionCode}', '_render' : 'none' })"""))
+    +@("onclick" -> createJSCallAction(actionCode))
 
   }
 
