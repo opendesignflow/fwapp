@@ -256,7 +256,13 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                 var res = frview.actionResults.head._2
                 resp.contentType = "application/json"
                 resp.content = ByteBuffer.wrap(("{" + res.toJSONString + "}").getBytes)
-              case frview: FWAppFrameworkView =>
+                
+              case frview: FWAppFrameworkView  if(frview.hasActionResult) =>
+                
+                println("Action ok")
+                var res = frview.actionResults.head._2
+                resp.contentType = "application/json"
+                resp.content = ByteBuffer.wrap(("{" + res.toJSONString + "}").getBytes)
 
               /*println("No errors: "+frview.hasActionErrors)
                  frview.actionResults.foreach {
