@@ -39,7 +39,7 @@ if os.path.exists(devLocation):
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.todo',
-    'sphinx.ext.mathjax','odfi_templates.extensions.svg','odfi_templates.extensions.code','odfi_templates.extensions.stepsrecorder']
+    'sphinx.ext.mathjax','odfi_templates.extensions.svg','odfi_templates.extensions.code','odfi_templates.extensions.stepsrecorder','odfi_templates.extensions.scala']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['templates']

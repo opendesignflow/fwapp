@@ -1,9 +1,9 @@
 
 
     
-############################
+#####
 Views
-############################
+#####
  
 .. contents:: Table of Contents
     :local:
@@ -12,6 +12,7 @@ Views
     :hidden:
      
     htmlbuilder/htmlbuilder
+    preferences
 
 
 As introduced in  :ref:`gettingstarted`, the actual Pages presented to the user are called "Views", as typically named in user interfaces
@@ -31,7 +32,7 @@ using a standard coding scheme.
   
  
 Defining a View Class
-=========================
+=====================
 
 Here we will modify the example from :ref:`gettingstarted` to implement the Hello World view using a plain class.
 Make sure you have understood the example, and are ready to modify it.
@@ -124,4 +125,4 @@ You should see two titles
 
 
 Simple Templating using inheritance
-=========================
+===================================
