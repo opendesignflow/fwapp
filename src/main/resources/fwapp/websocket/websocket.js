@@ -23,26 +23,6 @@ fwapp.websocket = {
 				if (fwapp.websocket.debug == true) {
 					console.log('Connection Done');
 					
-					
-					//Update text
-					//-------------------
-					fwapp.websocket.onPushData("UpdateText",function(updateText) {
-						
-						var id = fwapp.websocket.decodeHTML(updateText.Id)
-						//console.log("Got update text for: "+updateText.Id)
-						
-						var targetElement = $("#"+id);
-						if (targetElement) {
-							if (targetElement.is("input") && targetElement.attr("value")!=fwapp.websocket.decodeHTML(updateText.Text) ) {
-								
-								targetElement.attr("value",fwapp.websocket.decodeHTML(updateText.Text));
-							} else {
-								targetElement.html(fwapp.websocket.decodeHTML(updateText.Text));
-							}
-							
-						}
-						
-					});
 				}
 			};
 			

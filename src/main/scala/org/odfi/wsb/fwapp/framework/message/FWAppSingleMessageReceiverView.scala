@@ -30,12 +30,12 @@ trait FWAppSingleMessageReceiverView extends FWappView {
     this.getIntermediaryTreeTop match {
       case Some(top) if(top!=this) =>
 
-        println("********** Found Intermediary Tree Top to add to: "+top)
+        //println("********** Found Intermediary Tree Top to add to: "+top)
         top <= int
 
       //-- If not top parent found, add it iself
       case other =>
-        println("********** Not Found Intermediary Tree Top to add to: ")
+        //println("********** Not Found Intermediary Tree Top to add to: ")
         this.onParentResourceAdded {
           getIntermediaryTreeTop match {
             case Some(top) =>

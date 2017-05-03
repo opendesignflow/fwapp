@@ -26,45 +26,48 @@ import java.awt.Cursor
 
 class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
 
+  var disableGUI = false
+  
   this.onStart {
     GraphicsEnvironment.isHeadless() match {
       case true =>
-
-      case false =>
+      case false if(disableGUI) => 
+      case other =>
 
         //frame.add(new JLabel(new ImageIcon(getClass.getClassLoader.getResource("fwapp/ui/logo.png"))), BorderLayout.CENTER)
 
         this.engine.network.connectors.foreach {
           case hc: HTTPConnector =>
+            onSwingThreadLater {
+              
+              var frame = new JFrame()
+              frame.setSize(600, 300)
+              frame.getContentPane.setBackground(Color.WHITE)
 
-            var frame = new JFrame()
-            frame.setSize(600, 300)
-            frame.getContentPane.setBackground(Color.WHITE)
+              var svgPanel = new JSVGCanvas
+              svgPanel.loadSVGDocument(getClass.getClassLoader.getResource("fwapp/ui/logo.svg").toString())
 
-            var svgPanel = new JSVGCanvas
-            svgPanel.setDocumentState(JSVGComponent.ALWAYS_DYNAMIC)
-            svgPanel.loadSVGDocument(getClass.getClassLoader.getResource("fwapp/ui/logo.svg").toString())
+              frame.add(svgPanel, BorderLayout.CENTER)
 
-            //println("Website " + getDisplayName + s" available at: http://localhost:${hc.port}${this.basePath}")
+             var l = new JLabel(s"${getDisplayName} : http://localhost:${hc.port}${this.basePath}/")
+              l.setCursor(new Cursor(Cursor.HAND_CURSOR))
 
-            frame.add(svgPanel, BorderLayout.CENTER)
+              l.setFont(new Font("Sans Serif", Font.BOLD, 22))
 
-            var l = new JLabel(s"${getDisplayName} : http://localhost:${hc.port}${this.basePath}/")
-            l.setCursor(new Cursor(Cursor.HAND_CURSOR))
-            l.setFont(new Font("Sans Serif", Font.BOLD, 22))
-            l.addMouseListener(new MouseAdapter {
-              override def mouseClicked(e: MouseEvent) = {
-                if (Desktop.isDesktopSupported()) {
-                  Desktop.getDesktop.browse(new URI(s"http://localhost:${hc.port}${basePath}/"))
+              l.addMouseListener(new MouseAdapter {
+                override def mouseClicked(e: MouseEvent) = {
+                  if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop.browse(new URI(s"http://localhost:${hc.port}${basePath}/"))
+                  }
                 }
-              }
-            })
-            frame.add(l, BorderLayout.SOUTH)
+              })
+              frame.add(l, BorderLayout.SOUTH)
 
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
+              frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
 
-            frame.setVisible(true)
-            centerOnScreen(frame)
+              frame.setVisible(true)
+              centerOnScreen(frame)
+            }
           case other =>
         }
 

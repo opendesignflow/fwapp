@@ -6,7 +6,7 @@ import com.idyria.osi.vui.html.HTMLNode
 trait InlineView extends FWappView with DelayedInit {
 
   def delayedInit(body: => Unit) = {
-    println("dummy text, printed before initialization of C")
+    //println("dummy text, printed before initialization of C")
     val runBody : () => Unit = {
       () => 
       body

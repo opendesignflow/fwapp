@@ -13,4 +13,24 @@ $(function() {
 		
 	});
 	
+	//Update text
+	//-------------------
+	fwapp.websocket.onPushData("UpdateText",function(updateText) {
+		
+		var id = fwapp.decodeHTML(updateText.TargetID)
+		//console.log("Got update text for: "+id)
+		
+		var targetElement = $("#"+id);
+		if (targetElement) {
+			if (targetElement.is("input") && targetElement.attr("value")!=fwapp.decodeHTML(updateText.Text) ) {
+				
+				targetElement.attr("value",fwapp.decodeHTML(updateText.Text));
+			} else {
+				targetElement.html(fwapp.decodeHTML(updateText.Text));
+			}
+			
+		}
+		
+	});
+	
 });

@@ -43,7 +43,7 @@ trait WebsocketView extends FWAppFrameworkView {
   // Make sure Websocket intermediary is present in tree
   //--------------
   this.onParentResourceAdded {
-    println("**** Adding Websocket intermediary")
+    //println("**** Adding Websocket intermediary")
     val p = this.findUpchainResource[FWAppViewIntermediary].get
     //val p = this.parentResource.get.asInstanceOf[FWAppViewIntermediary]
     p.intermediaries.find {
@@ -56,7 +56,7 @@ trait WebsocketView extends FWAppFrameworkView {
         var websocket = new WebsocketPathIntermediary("/websocket")
         p.parentIntermediary <= websocket
 
-        println("Adding ws to " + p.fullURLPath)
+       // println("Adding ws to " + p.fullURLPath)
 
       case other =>
     }
@@ -93,6 +93,7 @@ trait WebsocketView extends FWAppFrameworkView {
 
             interface.writeSOAPPayload(elt)
             interface.nc.waitForInputPayload(1000)
+            
             //println("Got input payload -> keep going")
         }
 

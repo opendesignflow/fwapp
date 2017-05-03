@@ -128,7 +128,7 @@ class Site(basePath: String) extends FWappIntermediary(basePath) with FWappApp {
         this.engine.network.connectors.foreach {
           case hc: HTTPConnector =>
 
-            println("Website " + getDisplayName + s" available at: http://localhost:${hc.port}${this.basePath}")
+            println("Website " + getDisplayName + s" available 2 at: http://localhost:${hc.port}${this.basePath}")
 
           case other =>
 
