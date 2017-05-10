@@ -387,6 +387,11 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     def indicating = {
       "indicating" :: d
     }
+
+    def topAttached = {
+      "top attached" :: d
+    }
+    
     
     def update(p: Int) = {
       /*val tp = if (p > 100.0) {
