@@ -383,6 +383,11 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     var defaultMessage: Option[String] = None
     var lastValue: Double = 0.0
 
+    // Gui update
+    def indicating = {
+      "indicating" :: d
+    }
+    
     def update(p: Int) = {
       /*val tp = if (p > 100.0) {
         100.0
@@ -409,7 +414,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
   def semanticProgress(pid: String) = {
 
-    new SemanticProgressBar("ui indicating progress" :: div {
+    new SemanticProgressBar("ui progress" :: div {
       id("progress-" + pid)
       +@("style" -> "display:none")
       "bar" :: div {
