@@ -14,7 +14,8 @@ fwapp.actions = {
 		var deferred = $.get(path,sendData)
 		deferred.always(function() {
 			if(reload) {
-				location.reload();
+				window.location = window.location.href;
+				//location.reload();
 			}
 		});
 		
@@ -133,7 +134,8 @@ fwapp.actions = {
 			}
 			if ($(sender).attr("reload")) {
 
-				location.reload();
+				window.location = window.location.href;
+				//location.reload();
 			}
 			/*
 			 * if (data != "OK") { console.log("Reloading Page")

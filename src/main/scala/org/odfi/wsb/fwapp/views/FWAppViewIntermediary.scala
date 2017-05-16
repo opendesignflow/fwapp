@@ -153,11 +153,11 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                     //-- Test
                     foundViews.find(_.isEmpty) match {
                       case Some(foundNone) =>
-                        
+
                         res.success = false
                         var error = res.errors.add
                         error.message = "A View in action path is missing"
-                        
+
                       case None =>
 
                         val targetView = foundViews.last.get
@@ -217,22 +217,56 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
               req.getURLParameter("_render") match {
                 case None =>
                   //logInfo[FWappIntermediary]("Rerender full")
-
+                  resp.clearResults
                   resp.htmlContent = view.rerender
                 //println(s"Text res: "+resp.htmlContent.get.toString())
                 // logFine[FWappIntermediary]("Result: "+resp.htmlContent.get.toString()) 
 
                 case Some("partial") =>
+                  resp.clearResults
                   resp.htmlContent = view.rerender
 
                 case Some("full") =>
+
+                  resp.clearResults
                   resp.htmlContent = view.rerender
 
                 //-- Other values don't render view
+                //-- Return action result?
                 case other =>
-                  resp.code = 200
-                  resp.contentType = "text/plain"
-                  resp.content = ByteBuffer.wrap("".getBytes)
+
+                  println("No render, returning action result?")
+
+                  view match {
+                    case frview: FWAppFrameworkView if (frview.hasActionErrors && isJSONFormat) =>
+
+                      //-- Clear request errors, because the current error has priority
+                      req.clearErrors
+
+                      //-- Set Code
+                      resp.clearResults
+                      resp.code = 500
+
+                      //-- Output errors
+                      var res = frview.actionResults.head._2
+                      resp.contentType = "application/json"
+                      resp.content = ByteBuffer.wrap(("{" + res.toJSONString + "}").getBytes)
+
+                    case frview: FWAppFrameworkView if (frview.hasActionResult) =>
+
+                      println("Action ok")
+                      var res = frview.actionResults.head._2
+                      resp.code = 200
+                      resp.contentType = "application/json"
+                      resp.content = ByteBuffer.wrap(("{" + res.toJSONString + "}").getBytes)
+
+                    case other =>
+
+                      resp.code = 200
+                      resp.contentType = "text/plain"
+                      resp.content = ByteBuffer.wrap("".getBytes)
+                  }
+
               }
             } catch {
               case e: Throwable =>
@@ -243,36 +277,6 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
             //-- First action errors, then normal errors
             //---------------
             //println("JSON: "+isJSONFormat)
-            view match {
-              case frview: FWAppFrameworkView if (frview.hasActionErrors && isJSONFormat) =>
-
-                //-- Clear request errors, because the current error has priority
-                req.clearErrors
-
-                //-- Set Code
-                resp.code = 500
-
-                //-- Output errors
-                var res = frview.actionResults.head._2
-                resp.contentType = "application/json"
-                resp.content = ByteBuffer.wrap(("{" + res.toJSONString + "}").getBytes)
-                
-              case frview: FWAppFrameworkView  if(frview.hasActionResult) =>
-                
-                //println("Action ok")
-                var res = frview.actionResults.head._2
-                resp.contentType = "application/json"
-                resp.content = ByteBuffer.wrap(("{" + res.toJSONString + "}").getBytes)
-
-              /*println("No errors: "+frview.hasActionErrors)
-                 frview.actionResults.foreach {
-                   case (name,res) => 
-                     println("R: "+res.success)
-                 }*/
-
-              case other                      =>
-
-            }
 
             req.hasErrors match {
 
@@ -280,6 +284,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
               case true if (isJSONFormat) =>
 
                 //-- Set Code
+                resp.clearResults
                 resp.code = 500
 
                 //-- Return errors in JSON
@@ -299,6 +304,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
               case true =>
 
                 //-- Set Code
+                resp.clearResults
                 resp.code = 500
                 resp.contentType = "text/plain"
                 var stackString = new StringWriter
@@ -365,6 +371,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
               e.printStackTrace()
 
               //-- Set Code
+              resp.clearResults
               resp.code = 500
               resp.contentType = "text/plain"
               var stackString = new StringWriter
