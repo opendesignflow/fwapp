@@ -20,6 +20,18 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
   def getId = getClass.getCanonicalName
 
   def getUniqueId = getId + "" + hashCode()
+  
+  /**
+   * Enrich baseId with currentNOde hashcode and separator "-"
+   */
+  def currentNodeUniqueId(baseId:String,separator: String = "-") = {
+    
+    baseId.trim.startsWith("#") match {
+      case true => baseId
+      case false => baseId+separator+currentNode.hashCode()
+    }
+    
+  }
 
   // Environment utilities -> finding main Site and so on
   //---------------

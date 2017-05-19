@@ -30,6 +30,10 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
         script(createAssetsResolverURI(s"/semantic/semantic.min.js")) {
           //+@("async" -> true)
         }
+        
+        script(createAssetsResolverURI(s"/fwapp/lib/semantic/semantic-progress.js")) {
+          //+@("async" -> true)
+        }
       }
     case (None, target) =>
 
@@ -40,6 +44,10 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
         script(createAssetsResolverURI(s"/fwapp/external/semantic/semantic.min.js")) {
          // +@("async" -> true)
+        }
+        
+        script(createAssetsResolverURI(s"/fwapp/lib/semantic/semantic-progress.js")) {
+          //+@("async" -> true)
         }
       }
 
@@ -410,7 +418,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
             pmessage.Message = m
           case None =>
         }
-        //println(s"Progress Bar sending data...")
+        //println(s"Progress Bar sending data..."+d.getId)
         broadCastSOAPBackendMessage(pmessage)
       }
 
@@ -419,9 +427,14 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
   def semanticProgress(pid: String) = {
 
+    val targetPid = currentNodeUniqueId("progress-"+pid)
+    
     new SemanticProgressBar("ui progress" :: div {
-      id("progress-" + pid)
+      
+      id(targetPid)
+      
       +@("style" -> "display:none")
+      
       "bar" :: div {
         importHTML(<div class="progress"></div>)
       }
@@ -429,25 +442,12 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
       }
 
-      jqueryGenerateOnLoad("progress-" + pid) match {
+      jqueryGenerateOnLoad(targetPid) match {
         case Some(generator) =>
 
           generator.println(s"""|
                                 |console.log("Semantic Progress");
-                                |$$("#progress-$pid").progress();
-                                |
-                                |//fwapp.websocket.debug = true;
-                                |fwapp.websocket.makeEventConnection();
-                                |fwapp.websocket.onPushData("SemanticProgressUpdate",function(payload) {
-                                |  
-                                |  $$("#progress-$pid").show();
-                                |  $$("#progress-$pid").progress({percent: payload.Percent});
-                                |  if(payload.Message) {
-                                |    $$("#progress-$pid .label").text(payload.Message);
-                                |  }
-                                |  
-                                |});
-                                |
+                                |$$("#$targetPid").progress();
                                 |
                                 |""".stripMargin)
           generator.close()
