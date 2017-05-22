@@ -23,11 +23,12 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
   
   /**
    * Enrich baseId with currentNOde hashcode and separator "-"
+   * If id starts with # , it is kept as is, returned without #
    */
   def currentNodeUniqueId(baseId:String,separator: String = "-") = {
     
     baseId.trim.startsWith("#") match {
-      case true => baseId
+      case true => baseId.drop(1)
       case false => baseId+separator+currentNode.hashCode()
     }
     

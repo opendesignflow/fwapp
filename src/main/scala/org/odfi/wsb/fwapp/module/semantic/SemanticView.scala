@@ -427,7 +427,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
   def semanticProgress(pid: String) = {
 
-    val targetPid = currentNodeUniqueId("progress-"+pid)
+    val targetPid = currentNodeUniqueId(pid+"-progress")
     
     new SemanticProgressBar("ui progress" :: div {
       

@@ -235,7 +235,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                 //-- Return action result?
                 case other =>
 
-                  println("No render, returning action result?")
+                  logInfo[FWappIntermediary]("No render, returning action result?")
 
                   view match {
                     case frview: FWAppFrameworkView if (frview.hasActionErrors && isJSONFormat) =>
@@ -254,7 +254,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
 
                     case frview: FWAppFrameworkView if (frview.hasActionResult) =>
 
-                      println("Action ok")
+                      logInfo[FWappIntermediary]("Action ok")
                       var res = frview.actionResults.head._2
                       resp.code = 200
                       resp.contentType = "application/json"
