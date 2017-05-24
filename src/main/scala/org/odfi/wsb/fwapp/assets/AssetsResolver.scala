@@ -9,9 +9,6 @@ class AssetsResolver(path: String = "/") extends FWappIntermediary(path) {
 
   // Add Defaults
   addAssetsSource("/fwapp", new ResourcesAssetSource).addFilesSource("fwapp")
-  /*var fwappSource = new ResourcesAssetSource("/fwapp")
-  fwappSource.addFilesSource("fwapp")
-  this <= fwappSource*/
 
   def addAssetsSource[T <: AssetsSource](name: String, source: T): T = {
     source.basePath = ("/" + name).replaceAll("//+", "/")
@@ -59,6 +56,14 @@ class AssetsResolver(path: String = "/") extends FWappIntermediary(path) {
   def findAssetsSource(name: String) = {
     this.intermediaries.collectFirst {
       case s: AssetsSource if (s.basePath == ("/" + name).replaceAll("//+", "/")) =>
+        s
+
+    }
+  }
+  
+  def findResourcesAssetsSource(name:String) = {
+    this.intermediaries.collectFirst {
+      case s: ResourcesAssetSource if (s.basePath == ("/" + name).replaceAll("//+", "/")) =>
         s
 
     }

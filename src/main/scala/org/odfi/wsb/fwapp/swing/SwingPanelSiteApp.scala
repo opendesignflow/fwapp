@@ -11,7 +11,7 @@ import org.odfi.wsb.fwapp.Site
 import org.apache.batik.swing.JSVGCanvas
 import org.apache.batik.swing.svg.JSVGComponent
 import org.apache.batik.util.XMLResourceDescriptor
-import org.apache.batik.anim.dom.SAXSVGDocumentFactory
+//import org.apache.batik.anim.dom.SAXSVGDocumentFactory
 import org.w3c.dom.svg.SVGDocument
 import com.idyria.osi.wsb.webapp.http.connector.HTTPConnector
 import java.awt.Font
