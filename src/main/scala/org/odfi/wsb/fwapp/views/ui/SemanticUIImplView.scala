@@ -11,6 +11,9 @@ trait SemanticUIImplView extends FWAppFrameworkView {
         script(createAssetsResolverURI("/fwapp/impl/ui-semantic-impl.js")) {
 
         }
+        stylesheet(createAssetsResolverURI("/fwapp/impl/ui-semantic-impl.css")) {
+
+        }
       }
     case (None, target) =>
 

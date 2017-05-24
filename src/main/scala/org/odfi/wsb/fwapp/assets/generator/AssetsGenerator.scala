@@ -7,10 +7,14 @@ import com.idyria.osi.tea.hash.HashUtils
 import com.idyria.osi.wsb.webapp.http.message.HTTPResponse
 import java.nio.ByteBuffer
 import com.idyria.osi.wsb.webapp.mime.MimeTypes
+import java.net.URLEncoder
+import java.net.URLDecoder
+import java.io.PrintStream
+import com.idyria.osi.tea.listeners.ListeningSupport
 
 class AssetsGenerator extends AssetsSource("/") {
 
-  tlogEnableFull[AssetsGenerator]
+ /// tlogEnableFull[AssetsGenerator]
   
   var generatedResources = Map[String, (String,GeneratedOutputStream)]()
 
@@ -35,9 +39,12 @@ class AssetsGenerator extends AssetsSource("/") {
     req =>
 
       //-- Path is ID
-      //-- Path contains extension, so split
-      var splited =  req.path.split('.').filter(_.length()>0)
-      var (generatedId,extension) =  (splited(0),splited.drop(1).mkString("."))
+      //-- Remember it starts with "/ID" , so drop first character
+      var generatedId = URLDecoder.decode(req.path.drop(1), "US-ASCII")
+      
+      logFine[AssetsGenerator](s"Generated Resource: "+generatedId)
+     // var splited =  generatedId.split('.').filter(_.length()>0)
+     // var (generatedId,extension) =  (splited(0),splited.drop(1).mkString("."))
       
    
       this.generatedResources.get(generatedId) match {
@@ -68,13 +75,26 @@ class AssetsGenerator extends AssetsSource("/") {
 
 }
 
-class GeneratedOutputStream(val id:String) extends ByteArrayOutputStream {
+class GeneratedOutputStream(val id:String) extends ByteArrayOutputStream with ListeningSupport {
 
+  var printStream = new PrintStream(this)
+  
   var isClosed = false
 
+  def getURLId = URLEncoder.encode(id, "US-ASCII")
+  
   override def close() = {
+    this.@->("close")
     super.close()
     isClosed = true
   }
+  
+  def println(str:String) = this.printStream.println(str)
+  def print(str:String) = this.printStream.print(str)
 
+  // Events
+  def onClose(cl: => Unit) = {
+    this.on("close")(cl)
+  }
+  
 }

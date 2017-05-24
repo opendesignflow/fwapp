@@ -8,42 +8,26 @@ import com.idyria.osi.vui.html.Textarea
 import scala.reflect.ClassTag
 import com.idyria.osi.ooxoo.core.buffers.structural.AbstractDataBuffer
 
-import scala.reflect.macros.blackbox
-import scala.language.experimental.macros
+//import scala.reflect.macros.blackbox
+//import scala.language.experimental.macros
 
-trait FWAppValueBindingView extends FWAppFrameworkView {
+import fmacros.FWAppMacros
+import fmacros.FWAppValueBindingViewTrait
+
+trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingViewTrait {
 
   def createJSBindAction(code: String, render: String = "none") = {
     s"fwapp.actions.bindValue(this,'${getViewPath}?_action=${code}',{_render:'none'})"
   }
 
   import reflect.runtime.universe._
-  implicit def closureToExpr[V](cl: V => Any): Expr[V => Any] = {
-    reify(cl)
-  }
 
-  /*def bindValueAuto[V](exp: Expr[V => Any])(implicit tag: ClassTag[V]) = {
-    // Element 0 in expression is the input arg
-    var inputArg = exp.tree.children(0)
-
-    // Input Name is the product Element 1 :=> val NAME : V
-    //                                               ^ 1
-    var inputName = inputArg.productElement(1).toString
-
-   // println("Name: " + )
-   // bindValueWithName[V](inputName,exp.splice)
-  }*/
-
-  def bindValueAuto[V](expr: V => Any): Unit = macro FWAppValueBindingView.bindValueAutoImpl[V]
-
-  def bindValue[V](cl: V => Any)(implicit tag: ClassTag[V]): Unit = {
-    bindValueWithName[V]("value", cl)
-  }
+  //def bindValue[V](expr: V => Any): Unit  = macro FWAppMacros.bindValueImpl[V]
 
   def bindValueWithName[V](name: String, cl: V => Any)(implicit tag: ClassTag[V]): Unit = {
 
-    println(s"Inside bind value with name $name: "+tag)
-    
+    //println(s"Inside bind value with name $name: "+tag)
+
     var eventName = currentNode match {
       case t: Textarea[_, _] => "onchange"
       case other => "onchange"
@@ -62,7 +46,7 @@ trait FWAppValueBindingView extends FWAppFrameworkView {
 
         // Enable float if necessary
         if (baseClass == classOf[Double]) {
-          +@("step" -> "any")
+          +@("step" -> "0.1")
         }
 
         // Set name on element
@@ -77,6 +61,7 @@ trait FWAppValueBindingView extends FWAppFrameworkView {
         var action = this.getActionString {
 
           // Check URL parameters
+
           request.get.getURLParameter(targetNode.attributes("name").toString) match {
 
             case Some(v) =>
@@ -132,6 +117,8 @@ trait FWAppValueBindingView extends FWAppFrameworkView {
         // Register Action
         var action = this.getActionString {
 
+          //println("Processing String: "+targetNode.attributes("name")+" -> "+  request.get.getURLParameter(targetNode.attributes("name").toString))
+
           // Check URL parameters
           request.get.getURLParameter(targetNode.attributes("name").toString) match {
 
@@ -159,7 +146,7 @@ trait FWAppValueBindingView extends FWAppFrameworkView {
         currentNode.attributes.get("name") match {
           case Some(name) => name
           case None =>
-            +@("name" ->name)
+            +@("name" -> name)
         }
 
         // Register Action
@@ -188,76 +175,47 @@ trait FWAppValueBindingView extends FWAppFrameworkView {
       case None =>
         sys.error("Bind value on supports input types: " + bindSupportedTypes)
     }
+    
+    cl
 
   }
 
-  /**
-   * BindValue with Buffers
-   */
-  def bindBufferValue(vb: IntegerBuffer): Unit = {
-
-    +@("value" -> vb.toString())
-    this.bindValue {
-      v: Int =>
-        vb.set(v)
+  // Utils
+  //----------
+  def inputBind[V: ClassTag](cl: V => Any) = {
+    input {
+      bindValue {
+        value: V => cl(value)
+      }
     }
-
   }
 
-  /**
-   * BindValue with Buffers
-   */
-  def bindBufferValue(vb: XSDStringBuffer): Unit = {
+  def selectFromObjects[T](lst: List[(T, String)], current: String)(cl: T => Unit) = {
 
-    +@("value" -> vb.toString())
-    this.bindValue {
-      v: String =>
-        vb.data = v
+    var foundSelected = false
+    select {
 
-    }
+      lst.foreach {
+        case (obj, value) =>
 
-  }
+          option(value) {
+            
+            //-- Preselect
+            if (value == current) {
+              +@("selected" -> "true")
+            }
+            
+          }
 
-  def bindBufferValue(vb: BooleanBuffer): Unit = {
-
-    vb.data.booleanValue() match {
-      case true =>
-        +@("checked" -> "true")
-      case false =>
-    }
-
-    this.bindValue {
-      v: Boolean =>
-        vb.data = v
-
+      }
+      
+      bindValue {
+        v : String => 
+          cl(lst.find { case (obj,rv) => rv==v}.get._1)
+      }
     }
 
   }
 
 }
 
-object FWAppValueBindingView {
-
-  def bindValueAutoImpl[V](c: blackbox.Context)(expr: c.Expr[V => Any]): c.Expr[Unit] = {
-    import c.universe._
-
-    // Element 0 in expression is the input arg
-    var inputArg = expr.tree.children(0)
-
-    // Input Name is the product Element 1 :=> val NAME : V
-    //                                               ^ 1
-    var inputName = inputArg.productElement(1).toString
-    
-    // Type of input is product arity 2
-    var typeName = inputArg.productElement(2).toString
-
-    //c.warning(c.enclosingPosition, s"Calling $inputName of type $typeName ")
-    
-    //reify {
-      //c.mirror.bindValueWithName
-     // bindValueWithName[V]("test", {})
-    //}
-    c.Expr(q"""bindValueWithName($inputName,${reify(expr.splice)})""")
-   // c.Expr(q"""bindValueWithName[V]($inputName,${reify(expr.splice)})""")
-  }
-}

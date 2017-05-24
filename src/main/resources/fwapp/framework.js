@@ -1,5 +1,8 @@
 var fwapp = {
-
+		
+	lib : {
+		
+	},
 	/**
 	 * Decodes the URL Encoded HTML back to normal html that can be loaded in
 	 * the page

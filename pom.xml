@@ -3,18 +3,51 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.odfi.wsb.fwapp</groupId>
 	<artifactId>fwapp-core</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>Fwapp</name>
 
 
 	<parent>
 		<groupId>org.odfi</groupId>
 		<artifactId>superpom-scala</artifactId>
-		<version>2.12.1.r2</version>
+		<version>2.12.2.r1</version>
 	</parent>
 
+	<properties>
+		<batik.version>1.7</batik.version>
+		<ooxoo.version>3.2.3</ooxoo.version>
+		<wsb.core.version>3.3.1</wsb.core.version>
+		<wsb.webapp.version>2.1.2</wsb.webapp.version>
+		<indesign.core.version>1.1.0</indesign.core.version>
+	</properties>
+
 	<build>
+
+
 		<plugins>
+
+			<plugin>
+				<groupId>net.alchim31.maven</groupId>
+				<artifactId>scala-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>macro</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<recompileMode>all</recompileMode>
+							<!--<useZincServer>false</useZincServer> -->
+							<excludes>
+								<exclude>**/org/odfi/wsb/fwapp/**/*.scala</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
@@ -29,6 +62,7 @@
 						<configuration>
 							<sources>
 								<source>${project.build.directory}/generated-sources/scala</source>
+								<source>src/main/macros</source>
 								<source>src/examples/scala</source>
 							</sources>
 						</configuration>
@@ -41,7 +75,8 @@
 						<configuration>
 							<sources>
 								<source>${project.build.directory}/generated-sources/scala</source>
-								<source>src/examples/scala</source>
+								<source>src/main/macros</source>
+								<!-- <source>src/examples/scala</source> -->
 							</sources>
 						</configuration>
 					</execution>
@@ -50,12 +85,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-ooxoo-plugin</artifactId>
-				<version>3.2.3-SNAPSHOT</version>
+				<version>${ooxoo.version}</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.odfi.wsb</groupId>
 						<artifactId>wsb-core</artifactId>
-						<version>3.3.0</version>
+						<version>${wsb.core.version}</version>
 					</dependency>
 				</dependencies>
 				<executions>
@@ -71,7 +106,7 @@
 	</build>
 
 
-	<!-- Repositories to find OSI packages -->
+	<!-- Repositories to find ODFI packages -->
 	<!-- ############################################## -->
 	<pluginRepositories>
 		<pluginRepository>
@@ -79,19 +114,13 @@
 			<name>Sonatype OSS Snapshots Repository</name>
 			<url>http://oss.sonatype.org/content/groups/public</url>
 		</pluginRepository>
-		<!-- For old snapshots, please use groupId `com.jnaerator` and the following 
-			repo -->
-		<pluginRepository>
-			<id>nativelibs4java-repo</id>
-			<url>http://nativelibs4java.sourceforge.net/maven</url>
-		</pluginRepository>
 		<pluginRepository>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
 			<id>odfi.central</id>
 			<name>plugins-release</name>
-			<url>https://www.opendesignflow.org/maven/repository/internal/</url>
+			<url>http://www.opendesignflow.org/maven/repository/internal/</url>
 		</pluginRepository>
 		<pluginRepository>
 			<snapshots>
@@ -99,7 +128,7 @@
 			</snapshots>
 			<id>odfi.snapshots</id>
 			<name>plugins-snapshot</name>
-			<url>https://www.opendesignflow.org/maven/repository/snapshots/</url>
+			<url>http://www.opendesignflow.org/maven/repository/snapshots/</url>
 		</pluginRepository>
 	</pluginRepositories>
 	<repositories>
@@ -108,19 +137,13 @@
 			<name>Sonatype OSS Snapshots Repository</name>
 			<url>http://oss.sonatype.org/content/groups/public</url>
 		</repository>
-		<!-- For old snapshots, please use groupId `com.jnaerator` and the following 
-			repo -->
-		<repository>
-			<id>nativelibs4java-repo</id>
-			<url>http://nativelibs4java.sourceforge.net/maven</url>
-		</repository>
 		<repository>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
 			<id>odfi.central</id>
 			<name>odfi-release</name>
-			<url>https://www.opendesignflow.org/maven/repository/internal/</url>
+			<url>http://www.opendesignflow.org/maven/repository/internal/</url>
 		</repository>
 		<repository>
 			<snapshots>
@@ -128,7 +151,7 @@
 			</snapshots>
 			<id>odfi.snapshots</id>
 			<name>odfi-snapshot</name>
-			<url>https://www.opendesignflow.org/maven/repository/snapshots/</url>
+			<url>http://www.opendesignflow.org/maven/repository/snapshots/</url>
 		</repository>
 	</repositories>
 
@@ -138,13 +161,58 @@
 		<dependency>
 			<groupId>org.odfi.indesign</groupId>
 			<artifactId>indesign-core</artifactId>
-			<version>1.1.0-SNAPSHOT</version>
+			<version>${indesign.core.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.odfi.wsb</groupId>
 			<artifactId>wsb-webapp</artifactId>
-			<version>2.1.2-SNAPSHOT</version>
+			<version>${wsb.webapp.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.scalameta</groupId>
+			<artifactId>scalameta_2.12</artifactId>
+			<version>1.5.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.oauth-client/google-oauth-client -->
+		<dependency>
+			<groupId>com.google.oauth-client</groupId>
+			<artifactId>google-oauth-client</artifactId>
+			<version>1.22.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.api-client/google-api-client -->
+		<dependency>
+			<groupId>com.google.api-client</groupId>
+			<artifactId>google-api-client</artifactId>
+			<version>1.22.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-swing</artifactId>
+			<version>${batik.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-gvt</artifactId>
+			<version>${batik.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-svg-dom</artifactId>
+			<version>${batik.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-css</artifactId>
+			<version>${batik.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/xmlgraphics-commons -->
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>xmlgraphics-commons</artifactId>
+			<version>2.1</version>
+		</dependency>
+
+
 
 	</dependencies>
 </project>

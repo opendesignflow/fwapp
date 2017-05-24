@@ -1,0 +1,13 @@
+.inline {
+	display: inline-block;
+}
+
+/** Ribbon header **/
+
+/*
+	First child of ribbon-header is the container div.
+	Set top margin to avoid overlap with ribbon
+*/
+.ribbon-header div:first-child {
+	margin-top: 10px;
+}

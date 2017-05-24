@@ -12,16 +12,22 @@ import java.lang.ref.WeakReference
 
 class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath) {
 
+  //-- Creation Thread ClassLoader is the base classloader
+  var searchClassLoader = Thread.currentThread().getContextClassLoader
+
+  //tlogEnableFull[ResourcesAssetSource]
+  var enableRandomFile = false
+
   name = "Simple File Resources"
 
   //-- Accept all requests, appart from error containing ones
-  this.acceptAllDown
-  acceptDown[HTTPRequest] { 
+  //this.acceptAllDown
+  acceptDown[HTTPRequest] {
     message =>
-    
-    var r = (message.errors.isEmpty && message.upped == false)
-    logFine[ResourcesAssetSource](s"Resource acccepts: " + message.path + " -> " + basePath + " -> " + message.errors.isEmpty)
-    r
+
+      var r = (message.errors.isEmpty && message.upped == false)
+      logFine[ResourcesAssetSource](s"Resource acccepts: " + message.path + " -> " + basePath + " -> " + message.errors.isEmpty)
+      r
   }
 
   //Refuse messages with a path containing WEB-INF
@@ -47,6 +53,8 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
       fileSources = source :: fileSources
     }
 
+    this
+
   }
   /**
    * Search a resource at a given path
@@ -70,75 +78,37 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
     //-- Gather file sources
     var allFileSources = this.fileSources ::: ResourcesAssetSource.fileSources
 
-    logFine[ResourcesAssetSource](s"**** Searching resource in : ${fileSources}")
+    logFine[ResourcesAssetSource](s"**** Searching resource $path in : ${fileSources}")
 
     var res: Option[URL] = None
     // Try class Loader and stanadard file
-    logFine[ResourcesAssetSource](s"**** Searching as Resource: ${extractedPath}")
-    
-    
+    logFine[ResourcesAssetSource](s"**** Searching $path as Resource: ${extractedPath}")
+
     allFileSources.find {
-      sourceBase => 
-        
+      sourceBase =>
+
         var found = false
-        var resourcePath = sourceBase+"/"+extractedPath
+        var resourcePath = sourceBase + "/" + extractedPath
         var filePath = new File(new File(sourceBase), extractedPath.replace('/', File.separatorChar)).getCanonicalFile
         logFine[ResourcesAssetSource](s"**** Searching as Resource: ${resourcePath}")
-        Thread.currentThread().getContextClassLoader.getResource(resourcePath) match {
-          case null => 
-            logFine[ResourcesAssetSource](s"**** Searching as File: ${filePath}")
+        searchClassLoader.getResource(resourcePath) match {
+          case null =>
+            logFine[ResourcesAssetSource](s"**** Searching as File: ${filePath} -> ${filePath.canRead()}")
             filePath.exists() match {
-              case true => 
-                res = Some(filePath.toURI().toURL()); found=true;
-              case false => 
+              case true =>
+                res = Some(filePath.toURI().toURL());
+                found = true;
+              case false =>
             }
-          case other => res = Some(other); found=true;
+          case other => res = Some(other); found = true;
         }
-        
-        
-         logFine[ResourcesAssetSource](s"**** Found: ${found}")
+
+        logFine[ResourcesAssetSource](s"**** Found: ${found}")
         found
-        
+
     }
+
     res
-    /*allFileSources.collectFirst {
-      case sourceBase if (Thread.currentThread().getContextClassLoader.getResource(sourceBase+extractedPath)!=null) =>
-        Thread.currentThread().getContextClassLoader.getResource(sourceBase+extractedPath)
-      case sourceBase if (new File(new File(sourceBase), extractedPath.replace('/', File.separatorChar)).exists()) => 
-        new File(new File(sourceBase), extractedPath.replace('/', File.separatorChar)).toURI().toURL()
-    }*/
-    
-    
-    /*Thread.currentThread().getContextClassLoader.getResource(extractedPath) match {
-
-      case null =>
-        allFileSources.find {
-          source =>
-
-            // var possiblePath = new File(s"${source}${extractedPath}").toURI.toURL.toString
-
-            var searchFile = new File(source, extractedPath.replace('/', File.separatorChar))
-            logFine[ResourcesAssetSource](s"**** Searching as File: ${searchFile}")
-            searchFile match {
-
-              case f if (f.exists) =>
-
-                logFine(s"**** Found!")
-                res = Option(f.toURI.toURL)
-                true
-
-              case f => false
-            }
-
-        }
-
-      case url =>
-        logFine[ResourcesAssetSource](s"**** Found!")
-        res = Option(url);
-        true
-    }
-
-    res*/
 
   }
 
@@ -153,11 +123,24 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
     //var res = this.searchResource(extractedPath.get.group(1))
     var res = this.searchResource(request.path)
 
+    // Random File
+    res match {
+      case None if (enableRandomFile && request.getURLParameter("filePath").isDefined) =>
+
+        var randomFile = new File(request.getURLParameter("filePath").get)
+        randomFile.exists() match {
+          case true => Some(randomFile.toURI().toURL())
+          case false => None
+        }
+
+      case other => res
+    }
+
     // var res = this.searchResource(request.qualifier)
 
     //println(s"*** Request Resource search of ${request.qualifier} against: ${WebApplication.this.filter.pattern.toString} : " + extractedPath + ", result -> " + res)
 
-    res
+    // res
 
   }
 
@@ -168,11 +151,10 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
     message =>
 
       try {
-        
+
         //-- Strip prefix if necessary
         message.stripPathPrefix(this.basePath)
-        
-      
+
         logFine[ResourcesAssetSource](s"Resource process: " + message.path + " -> " + basePath)
         searchResource(message) match {
 
@@ -188,8 +170,10 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
                 val rangeSpecRegexp = s"""bytes=([0-9]+)(?:-([0-9]+))?""".r
                 rangeSpecRegexp.findFirstMatchIn(rangeSpec) match {
                   case Some(res) =>
+
                     // Check results
-                    println(s"Match: ${res.group(1)},${res.group(2)}")
+                    //println(s"Match: ${res.group(1)},${res.group(2)}")
+
                     (res.group(1), res.group(2)) match {
                       case ("", "") => (-1, -1)
                       case (start, null) => (start.toInt, -1)
@@ -213,7 +197,7 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
             var response = new HTTPResponse
 
             //-- Get Data      
-            val maxReturnBuffer = 1024 * 1024
+            val maxReturnBuffer = 100 * 1024 * 1024
             var data = (start, stop) match {
 
               // Full Content
@@ -229,6 +213,9 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
               case (start, -1) =>
 
                 var totalLength = resourceStream.available
+                var requestedLength = totalLength - start
+                
+                
 
                 //println(s"Returning Remaninig content: ${resourceStream.available}")
 
@@ -246,7 +233,7 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
               }*/
 
                 response.code = 206
-                response.addParameter("Content-Range", s"bytes $start-${totalLength - 1}/${totalLength}")
+                response.addParameter("Content-Range", s"bytes $start-${start + requestedLength - 1}/${requestedLength}")
 
                 //ByteBuffer.wrap(swallow(resourceStream, start, resourceStream.available()))
 
@@ -254,7 +241,7 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
                 //response.content = swallow(resourceStream, start, totalLength)
 
                 // New
-                response.content = swallow(resourceURL, start, totalLength)
+                response.content = swallow(resourceURL, start, requestedLength)
 
               // Range
               case (start, stop) =>
@@ -323,6 +310,12 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
                 response.contentType = "video/mp4"
               case path if (path.endsWith(".pdf")) =>
                 response.contentType = "application/pdf"
+              case path if (path.endsWith(".mp3")) =>
+                response.contentType = "audio/mp3"
+              case path if (path.endsWith(".ogg")) =>
+                response.contentType = "audio/vorbis"
+              
+
               //response(HTTPResponse("video/mp4", data), message)
 
               // Special Views
@@ -345,7 +338,6 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
 
           //-- Nothing found -> Continue to handler
           case None =>
-            
 
         }
       } catch {
@@ -439,61 +431,7 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
     //println(s"Got buffer for ${is} $start -> $stop, available: "+bytes.remaining())
 
     bytes
-    /*
-    try {
-
-      // Skip start
-
-      // Create Output Byte Buffer
-      is.skip(start)
-      var expected = stop - start
-      var resBuffer = ByteBuffer.allocate(expected)
-
-      //var res = new Array[Byte](stop - start);
-      val buffsize = 4096;
-      var readBuffer = new Array[Byte](buffsize);
-      var sizeRead = 0;
-      var position = 0;
-
-      // Swallow
-      var continue = true
-      while (sizeRead < expected) {
-
-        is.read(readBuffer) match {
-          case 0 =>
-            continue = false
-            sizeRead = expected
-          case -1 =>
-            continue = false
-            sizeRead = expected
-          case read =>
-            // Copy
-            //System.arraycopy(buff, 0, res, position, sizeRead);
-
-            // Write Either whole read size or the remaning content
-            if (resBuffer.remaining > read) {
-              resBuffer.put(readBuffer, 0, read)
-              sizeRead += read;
-            } else {
-              resBuffer.put(readBuffer, 0, resBuffer.remaining)
-              sizeRead = expected
-            }
-
-        }
-
-      }
-
-      // Flip to be readable later
-      resBuffer.flip()
-      //println(s"Returned Buffer with: " + resBuffer.remaining())
-      resBuffer
-
-    } catch {
-      // TODO Auto-generated catch block
-      case e: Throwable =>
-        e.printStackTrace();
-        throw e
-    }*/
+    
 
   }
 }
@@ -560,15 +498,15 @@ object ResourcesAssetSource {
               var wr = new WeakReference(bytes)*/
 
               var is = url.openStream()
-              var bytes = TeaIOUtils.swallow(is)
+              var bytes = ByteBuffer.wrap(TeaIOUtils.swallow(is))
               /*var bb = ByteBuffer.allocateDirect(bytes.length)
               bb.put(bytes)
               bb.flip();
               bytes= null*/
-              var wr = new WeakReference(ByteBuffer.wrap(bytes))
+              var wr = new WeakReference(bytes)
 
               cacheMap = cacheMap + (url.toExternalForm() -> wr)
-              wr.get.duplicate()
+              bytes.duplicate()
             case other =>
 
               var is = url.openStream()

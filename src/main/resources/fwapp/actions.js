@@ -1,34 +1,101 @@
 fwapp.actions = {
 
+	callViewAction : function(actionName,sendData,reload) {
+		
+		//-- Add action to send data
+		sendData._action = actionName;
+		sendData._format = "json";
+		sendData._render = "none";
+		
+		//-- Create Path
+		var path = window.location;
+		
+		//-- Send
+		var deferred = $.get(path,sendData)
+		deferred.always(function() {
+			if(reload) {
+				window.location = window.location.href;
+				//location.reload();
+			}
+		});
+		
+	},
+		
 	callAction : function(sender, path, sendData) {
 		console.log("Call Action");
 		
 
+		
+		
+		// Request parameters
+		//---------------
+		var responseFormat = "text";
 		sendData = sendData || {};
 		
-		/*
-		 * $(data).each(function(key,val) {
-		 * 
-		 * var key = Object.keys(val)[0] var valScript = Object.values(val)[0]
-		 * console.log("Function name: "+valScript);
-		 * 
-		 * var val = window["'"+valScript+"'"](sender); //= eval(valScript);
-		 * 
-		 * console.log("Sending data: "+key+", value: "+val); });
-		 */
 		// Look for form
 		//-----------
+		//FIXME
 		if ($(sender).parents('form').length) {
 			
 			var parentForm = $(sender).parents('form');
 			
 			console.info("Inside form: "+parentForm.serialize())
-			path = path+"&"+parentForm.serialize()
+			//path = path+"&"+parentForm.serialize()
+			
 			//sendData.form = parentForm.serializeArray();
 		}
 		
-		console.info("Running action, sending remote request for " + path);
-		console.info("Send data is: " + JSON.stringify(sendData));
+		// Look for extra data on the sender
+		//-------------------
+		console.log("Known data: "+$(sender).data("value-text"));
+		for (var key in $(sender).data()) {
+			console.log("Found data: "+key+ "-> "+$(sender).data(key));
+		}
+		var keys = Object.keys($(sender).data());
+		var valueKeys = keys.filter(function(key){
+		    return key.match(/value[\w]+/)
+		  
+		});
+		valueKeys.forEach(function(key){
+			
+			var parameterName = key.replace(/^value/, '').toLowerCase();
+		    console.log("Found value data: "+parameterName);
+		    
+		    //-- Evaluate
+		    var evalValue = $(sender).data("value-"+parameterName);
+		    console.log("script for data: "+evalValue);
+		    var resultValue = eval(evalValue);
+		    console.log("Result value: "+resultValue);
+		    
+		    sendData[parameterName] = resultValue;
+		    
+		});
+		
+		
+		
+		
+		// Make JSON if no reload
+		//-----------
+		if ($(sender).attr("reload"))  {
+			reload = true;
+		} else {
+			reload = false;
+		}
+			
+		if (!reload) {
+			sendData._format = "json";
+			responseFormat = "json";
+		}
+		
+		// Add Send Data to path
+		//--------------------------
+		/*$(Object.keys(sendData)).each(function(i,e) {
+			
+			console.log("Found send data: "+e);
+			path = path+"&"+e+"="+encodeURI(sendData[e]);
+			
+		});*/
+		
 		
 		// Disable
 		// ------------
@@ -41,9 +108,18 @@ fwapp.actions = {
 			fwapp.ui.waitStart(sender);
 		}
 		
-		var deffered = $.get(path, sendData);
+		
+		
+		// Send
+		//-------------
+		console.info("Running action, sending remote request for " + path);
+		console.info("Send data is: " + JSON.stringify(sendData));
+		
+		
+		var deffered = $.post(path,sendData,jQuery.noop,responseFormat);
 		deffered.done(function(data) {
 
+			console.log("Done..." + JSON.stringify(data));
 			console.log("Done..." + data.responseText);
 
 			fwapp.ui.enable(sender);
@@ -58,7 +134,8 @@ fwapp.actions = {
 			}
 			if ($(sender).attr("reload")) {
 
-				location.reload();
+				window.location = window.location.href;
+				//location.reload();
 			}
 			/*
 			 * if (data != "OK") { console.log("Reloading Page")
@@ -79,8 +156,9 @@ fwapp.actions = {
 			fwapp.ui.enable(sender);
 			
 			console.log("Error in action :" + data.responseText);
+			var error = $.parseJSON(data.responseText);
 
-			fwapp.ui.errorFor(sender, data.responseText);
+			fwapp.ui.errorFor(sender, error);
 			/*
 			 * if (localWeb.faultFor(sender, data.responseText)==false) {
 			 * $(sender).html(data.responseText); }
@@ -107,11 +185,11 @@ fwapp.actions = {
 		} else {
 			var value = elt.val();
 		}
-		sendData.value = encodeURIComponent(value)
+		//sendData.value = encodeURIComponent(value)
 
 		// -- Send Value
 		var name = $(element).attr("name");
-		sendData.name = name;
+		sendData[name] = value;
 
 		console.info("Sending " + value + " as name " + name);
 

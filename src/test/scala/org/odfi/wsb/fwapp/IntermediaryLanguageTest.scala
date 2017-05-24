@@ -5,12 +5,10 @@ import org.scalatest.BeforeAndAfterEach
 
 class IntermediaryLanguageTest extends FunSuite with FWappTreeBuilder with BeforeAndAfterEach {
 
-  var treeBuilder = new FWappTreeBuilder {
-
-  }
+ 
   
   override def beforeEach = {
-    treeBuilder.reset
+    this.reset
   }
   
 
@@ -40,6 +38,8 @@ class IntermediaryLanguageTest extends FunSuite with FWappTreeBuilder with Befor
 
   test("Intermediary Tree - Repeating path") {
 
+    //tlogEnableFull[FWappTreeBuilder]
+    
     //-- Create
      var aIntermediary = ("/a" is {
 

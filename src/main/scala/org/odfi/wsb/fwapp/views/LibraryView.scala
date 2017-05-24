@@ -8,52 +8,113 @@ import com.idyria.osi.vui.html.Body
 import org.odfi.wsb.fwapp.assets.AssetsManager
 import org.odfi.wsb.fwapp.assets.AssetsSource
 import scala.collection.mutable.LinkedHashMap
+import com.idyria.osi.vui.html.Script
+import com.idyria.osi.vui.html.Stylesheet
 
 trait LibraryView extends FWappView {
 
   var libraries = new LinkedHashMap[String, List[(Option[AssetsSource], HTMLNode[HTMLElement, Any]) => Any]]();
   var librariesPlaced = false
+  var librariesPlacedLocation: Option[HTMLNode[HTMLElement, _]] = None
 
   /*def addLibrary(cl: HTMLNode[HTMLElement, Any] => Any) = {
     
   }*/
 
+  def hasLibrary(name: String) = libraries.keySet.contains(name)
+
   def addLibrary(name: String)(cl: (Option[AssetsSource], HTMLNode[HTMLElement, Any]) => Any): Unit = {
 
+    //val  targetView = getTopViewOrSelfAs[LibraryView] 
+    val targetView = this
+
     //-- Look for list
-    var closures = libraries.get(name) match {
+    var closures = targetView.libraries.get(name) match {
       case Some(lst) => lst
-      case None => List()
+      case None      => List()
     }
 
     //-- Update
     closures = closures :+ cl
 
+    //println("Adding CL for: "+name)
+
     //-- Save
-    libraries += (name -> closures)
+    targetView.libraries += (name -> closures)
+  }
+
+  /**
+   * If the placement location is defined, remove duplicate scripts and such
+   */
+  def cleanupLibraries = this.librariesPlacedLocation match {
+    case Some(location) =>
+
+      val scriptsAndStyle = location.children.filter {
+        case s: Script[_, _]     => s.hasAttribute("src")
+        case s: Stylesheet[_, _] => s.hasAttribute("href")
+        case other               => false
+      }
+
+      // group by location and only keep one of duplicates
+      scriptsAndStyle.groupBy {
+        case s: Script[_, _]     => s.attribute("src")
+        case s: Stylesheet[_, _] => s.attribute("href")
+      }.foreach {
+        case (loc, nodes) => nodes.drop(1).foreach(_.detach)
+      }
+
+    case None =>
   }
 
   def placeLibraries = {
 
+    librariesPlacedLocation = Some(currentNode)
+
     // Check Libraries
-    this.libraries.foreach {
-      case (lib, builders) =>
+    try {
 
-        getAssetsResolver match {
-          case Some(resolver) if (resolver.findAssetsSource(lib).isDefined) =>
-            builders.foreach(_(Some(resolver.findAssetsSource(lib).get), currentNode))
-          case other =>
-            builders.foreach(_(None, currentNode))
-        }
+      // Real target node cna be local or in the parent's placement location
+      ///val realTargetNode = currentNode
+      val realTargetNode = getTopView[LibraryView] match {
+        case Some(parentLibView) if (parentLibView.librariesPlacedLocation.isDefined) =>
+          //println("Found Top View")
+          parentLibView.librariesPlacedLocation.get
+        case other =>
+          currentNode
 
-      /*AssetsManager.findAssetSource(lib) match {
+      }
+
+      //println(s"calling place libraries on: " + realTargetNode.hashCode() + " -> " + currentNode.children.size)
+
+      onNode(realTargetNode) {
+        this.libraries.foreach {
+          case (lib, builders) =>
+
+            // println("Placing: "+lib)
+            getAssetsResolver match {
+              case Some(resolver) if (resolver.findAssetsSource(lib).isDefined) =>
+                builders.foreach(_(Some(resolver.findAssetsSource(lib).get), realTargetNode))
+              case other =>
+                builders.foreach(_(None, realTargetNode))
+            }
+
+          /*AssetsManager.findAssetSource(lib) match {
           case Some(source) =>
             builders.foreach(_(Some(source), currentNode))
 
           case None =>
             builders.foreach(_(None, currentNode))
         }*/
+        }
+      }
+
+      // Cleanup libraries to avoid duplicates
+      getTopViewOrSelfAs[LibraryView].cleanupLibraries
+
+    } catch {
+      case e: Throwable => e.printStackTrace()
     }
+   // println(s"done calling place libraries on: " + currentNode.hashCode() + " -> " + currentNode.children.size)
     librariesPlaced = true
   }
 
@@ -62,9 +123,12 @@ trait LibraryView extends FWappView {
     // Let Main Rendereing Chain happen
     var result = super.render
 
-    //println("Library view main render done:" +result)
+    //println(s"Library view main render on ${getClass} done: " + result.hashCode())
 
     if (!librariesPlaced) {
+
+      //println(s"Library view on ${getClass} placing libraries")
+
       // Add Scripts/Stylesheet depending on result
       var (contentNode, targetNode) = result match {
 
@@ -97,8 +161,10 @@ trait LibraryView extends FWappView {
       }
 
       // Add
-      // Reverse and add to first nodes
-      this.libraries.foreach {
+      onNode(targetNode) {
+        placeLibraries
+      }
+      /*this.libraries.foreach {
 
         case (lib, builders) =>
 
@@ -108,36 +174,8 @@ trait LibraryView extends FWappView {
             case other =>
               builders.foreach(_(None, currentNode))
           }
-
-        /*AssetsManager.findAssetSource(lib) match {
-            case Some(source) =>
-              builders.foreach(_(Some(source), currentNode))
-
-            case None =>
-              builders.foreach(_(None, currentNode))
-
-              onNode(contentNode) {
-                "warning" :: div {
-                  text(s"Library $lib cannot be provided through assets manager, maybe a configuration is missing")
-                }
-              }
-
-          }*/
-      }
+      }*/
     }
-    //  Add scripts to target
-    // externalAdd(targetNode)
-
-    /*switchToNode(targetNode, {
-      
-      stylesheet(new URI(s"${viewPath}/resources/semantic/semantic.min.css".noDoubleSlash)) {
-
-      }
-  
-      script(new URI(s"${viewPath}/resources/semantic/semantic.min.js".noDoubleSlash)) {
-
-      }
-    })*/
 
     // Return
     result
