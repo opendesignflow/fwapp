@@ -13,11 +13,12 @@ trait WebsocketView extends FWAppFrameworkView {
   this.addLibrary("fwapp") {
     case (Some(l), target) =>
       onNode(target) {
-        
+
         //-- Make sure Session is created
         ensureSession
         //this.request.get.getSession
-        
+       // println(s"Cleaning websocket connected listeners")
+       // this.listeningPoints = listeningPoints - "websocket.connected"
         script(createAssetsResolverURI("/fwapp/websocket/websocket.js")) {
 
         }
@@ -25,8 +26,25 @@ trait WebsocketView extends FWAppFrameworkView {
 
     case other =>
   }
-  
-  
+
+  // Connection Made
+  //-------------
+ /* override def rerender = {
+    println(s"Cleaning websocket connected listeners")
+    this.listeningPoints = listeningPoints - "websocket.connected"
+    super.rerender
+  }*/
+  override def render = {
+    println(s"Cleaning websocket connected listeners")
+    this.listeningPoints = listeningPoints - "websocket.connected"
+    super.render
+  }
+  def onWebsocketConnectionMade(cl: => Any) = {
+    this.on("websocket.connected") {
+      cl
+    }
+  }
+
   def getWebsocketIntermediary = this.findUpchainResource[FWAppViewIntermediary].get.parentIntermediary.intermediaries.collectFirst {
     case i: WebsocketPathIntermediary => i
   } match {
@@ -48,21 +66,22 @@ trait WebsocketView extends FWAppFrameworkView {
     //val p = this.parentResource.get.asInstanceOf[FWAppViewIntermediary]
     p.intermediaries.find {
       case i: WebsocketPathIntermediary => true
-      case i => false
+      case i                            => false
     } match {
       //-- Add Websocket intermediary
       case None =>
 
         var websocket = new WebsocketPathIntermediary("/websocket")
+        websocket.onWebsocketConnected {
+          this.@->("websocket.connected")
+        }
         p.parentIntermediary <= websocket
 
-       // println("Adding ws to " + p.fullURLPath)
+      // println("Adding ws to " + p.fullURLPath)
 
       case other =>
     }
   }
-
-  
 
   // Send backend Message
   //------------------------
@@ -93,13 +112,13 @@ trait WebsocketView extends FWAppFrameworkView {
 
             interface.writeSOAPPayload(elt)
             interface.nc.waitForInputPayload(1000)
-            
-            //println("Got input payload -> keep going")
+
+          //println("Got input payload -> keep going")
         }
 
       case None =>
     }
-   // getTopParentView.@->("soap.broadcast", elt)
+    // getTopParentView.@->("soap.broadcast", elt)
   }
 
 }

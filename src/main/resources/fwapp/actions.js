@@ -40,6 +40,9 @@ fwapp.actions = {
 			var parentForm = $(sender).parents('form');
 			
 			console.info("Inside form: "+parentForm.serialize())
+			$.each(parentForm.serializeArray(),function(i, field) {
+				sendData[field.name] = field.value;
+			});
 			//path = path+"&"+parentForm.serialize()
 			
 			//sendData.form = parentForm.serializeArray();
@@ -132,11 +135,14 @@ fwapp.actions = {
 			if (doWait) {
 				fwapp.ui.waitStop(sender);
 			}
+			console.log("Reload..."+$(sender).attr("reload"));
 			if ($(sender).attr("reload")) {
 
 				window.location = window.location.href;
 				//location.reload();
 			}
+			
+			return false;
 			/*
 			 * if (data != "OK") { console.log("Reloading Page")
 			 * $("body").html(data); }

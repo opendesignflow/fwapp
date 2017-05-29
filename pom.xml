@@ -15,9 +15,9 @@
 
 	<properties>
 		<batik.version>1.7</batik.version>
-		<ooxoo.version>3.2.3</ooxoo.version>
+		<ooxoo.version>3.3.0-SNAPSHOT</ooxoo.version>
 		<wsb.core.version>3.3.1</wsb.core.version>
-		<wsb.webapp.version>2.1.2</wsb.webapp.version>
+		<wsb.webapp.version>2.2.0-SNAPSHOT</wsb.webapp.version>
 		<indesign.core.version>1.1.0</indesign.core.version>
 	</properties>
 
@@ -158,6 +158,11 @@
 
 
 	<dependencies>
+		<dependency>
+			<groupId>org.odfi.ooxoo</groupId>
+			<artifactId>ooxoo-db</artifactId>
+			<version>${ooxoo.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.odfi.indesign</groupId>
 			<artifactId>indesign-core</artifactId>

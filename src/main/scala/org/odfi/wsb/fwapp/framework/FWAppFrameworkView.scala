@@ -138,7 +138,7 @@ trait FWAppFrameworkView extends JQueryView  {
   
   def buttonClick(text:String)(cl: => Any) =  {
     button(text) {
-      onClickReload {
+      onClick {
         cl
       }
     }
