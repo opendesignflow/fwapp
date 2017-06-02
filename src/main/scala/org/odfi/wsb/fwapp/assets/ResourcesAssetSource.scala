@@ -48,7 +48,7 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
   def addFilesSource(source: String) = {
 
     if (source == "") {
-      fileSources = "." :: fileSources
+      fileSources = "./" :: "" :: fileSources
     } else {
       fileSources = source :: fileSources
     }
@@ -88,7 +88,10 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
       sourceBase =>
 
         var found = false
-        var resourcePath = sourceBase + "/" + extractedPath
+        var resourcePath = sourceBase match {
+          case "" => extractedPath
+          case other => other + "/"+extractedPath
+        }
         var filePath = new File(new File(sourceBase), extractedPath.replace('/', File.separatorChar)).getCanonicalFile
         logFine[ResourcesAssetSource](s"**** Searching as Resource: ${resourcePath}")
         searchClassLoader.getResource(resourcePath) match {
