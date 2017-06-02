@@ -29,6 +29,7 @@ trait FWAppPreferencesBinding extends FWAppValueBindingView {
 
         value: V =>
 
+          //println(s"Binding pref to: "+value)
           value match {
             case value: Boolean =>
               p.putBoolean(key, value)
@@ -49,21 +50,45 @@ trait FWAppPreferencesBinding extends FWAppValueBindingView {
       //--- Call CL
       default match {
         case value: Boolean =>
-          cl(p.getBoolean(key,value).asInstanceOf[V])
+          cl(p.getBoolean(key, value).asInstanceOf[V])
         case value: Int =>
-         cl(p.getInt(key,value).asInstanceOf[V])
+          cl(p.getInt(key, value).asInstanceOf[V])
         case value: Long =>
-          cl(p.getLong(key,value).asInstanceOf[V])
+          cl(p.getLong(key, value).asInstanceOf[V])
         case value: Double =>
-          cl(p.getDouble(key,value).asInstanceOf[V])
+          cl(p.getDouble(key, value).asInstanceOf[V])
         case value =>
-          cl(p.get(key,value.toString).asInstanceOf[V])
+          cl(p.get(key, value.toString).asInstanceOf[V])
       }
-     
 
     }
 
     i
+  }
+
+  /**
+   *
+   */
+  def inputToPreferenceRadio(groupName: String, p: Preferences, key: String, radioValue: String)(cl: Boolean => Unit) = {
+
+    // Checked if pref value is the one for this radio
+    //--------------------
+    val checkedAttr = if(p.get(key, radioValue) == radioValue) {
+      "@checked=true"
+    } else {
+      ""
+    }
+
+    
+    // Create Radio
+    //-----------
+    s"@type=radio @name=$groupName @value=$radioValue $checkedAttr" :: inputToPreference(p, key, radioValue) {
+      v =>
+        //p.put(key, value)
+        //println(s"Pref value is now : "+p.get(key, radioValue)) 
+        cl(true)
+    }
+
   }
 
   /**
