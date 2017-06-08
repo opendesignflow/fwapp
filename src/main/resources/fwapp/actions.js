@@ -1,3 +1,23 @@
+/*-
+ * #%L
+ * FWAPP Framework
+ * %%
+ * Copyright (C) 2016 - 2017 Open Design Flow
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * #L%
+ */
 fwapp.actions = {
 
 	callViewAction : function(actionName,sendData,reload) {
@@ -123,12 +143,11 @@ fwapp.actions = {
 		deffered.done(function(data) {
 
 			console.log("Done..." + JSON.stringify(data));
-			console.log("Done..." + data.responseText);
+			//console.log("Done..." + data.responseText);
 
 			fwapp.ui.enable(sender);
 
-			// Get Action Result
-			// --------
+			
 
 			// Handle reload/wait etc
 			// -------------
@@ -142,16 +161,11 @@ fwapp.actions = {
 				//location.reload();
 			}
 			
+			// Get Action Result
+			// --------
+			fwapp.ui.resultFor(sender, data);
+			
 			return false;
-			/*
-			 * if (data != "OK") { console.log("Reloading Page")
-			 * $("body").html(data); }
-			 * 
-			 * if ($(sender).attr("reload")) {
-			 * 
-			 * location.reload(); }
-			 */
-
 		});
 		deffered.fail(function(data) {
 

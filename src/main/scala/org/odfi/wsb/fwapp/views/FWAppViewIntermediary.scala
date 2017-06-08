@@ -1,3 +1,23 @@
+/*-
+ * #%L
+ * FWAPP Framework
+ * %%
+ * Copyright (C) 2016 - 2017 Open Design Flow
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * #L%
+ */
 package org.odfi.wsb.fwapp.views
 
 import org.odfi.wsb.fwapp.FWappIntermediary
@@ -7,13 +27,13 @@ import java.time.Instant
 import java.time.ZoneId
 import com.idyria.osi.wsb.webapp.http.message.HTTPResponse
 import org.odfi.wsb.fwapp.framework.FWAppFrameworkView
-import org.odfi.wsb.fwapp.framework.ActionsResultActionResult
 import java.io.StringWriter
 import java.io.PrintWriter
 import java.nio.ByteBuffer
 import org.odfi.wsb.fwapp.framework.ActionsResult
 import org.odfi.wsb.fwapp.framework.Errors
 import com.idyria.osi.wsb.webapp.http.message.HTTPRequest
+import org.odfi.wsb.fwapp.framework.ActionResult
 
 class FWAppViewIntermediary extends FWappIntermediary("/") {
 
@@ -123,7 +143,8 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
 
                     logInfo[FWappIntermediary]("Calling Action " + actionName)
 
-                    var res = new ActionsResultActionResult
+                    //-- Create Action Result
+                    var res = new ActionResult
                     res.ID = actionName
                     frview.saveActionResult(actionName, res)
 
@@ -150,14 +171,17 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                         }
                     }
 
-                    //-- Test
+                    //-- Test if all views in action path were found
                     foundViews.find(_.isEmpty) match {
+
+                      //-- Not all found, error
                       case Some(foundNone) =>
 
                         res.success = false
                         var error = res.errors.add
                         error.message = "A View in action path is missing"
 
+                      //-- All found, can proceed
                       case None =>
 
                         val targetView = foundViews.last.get
@@ -172,7 +196,10 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
 
                             try {
 
-                              res.result = action._2(action._1).toString()
+                              val actionResult = action._2(action._1).toString()
+                              val savedResult = res.results.add
+                              savedResult.hint = "run-result"
+                              savedResult.text = actionResult
                               res.success = true
 
                               //println("Action run")

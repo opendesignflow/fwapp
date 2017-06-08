@@ -96,6 +96,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
         generator.println("console.info('From generated');")
 
+
         //-- look for required
         var contraints = sform.onSubNodesMap {
           case node: HTMLNode[HTMLElement, _] =>
@@ -199,6 +200,13 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
   // Local Errors
   //-----------------
+  def semanticActionResult(defaultText:String="") {
+    "ui error fwapp-action-result-placeholder fwapp-action-error message hidden" :: div()
+    "ui info fwapp-action-result-placeholder fwapp-action-results message hidden" :: div()
+    if(defaultText!="") {
+      "ui message fwapp-action-result-placeholder fwapp-action-info" :: defaultText
+    }
+  }
   def semanticLocalError(err: String) = {
     +@("local-error" -> err)
   }

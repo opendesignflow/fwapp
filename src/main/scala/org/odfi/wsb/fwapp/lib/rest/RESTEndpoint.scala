@@ -18,8 +18,20 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.odfi.wsb.fwapp.lib.security
+package org.odfi.wsb.fwapp.lib.rest
 
-class AuthenticationToken {
+import com.idyria.osi.wsb.webapp.http.message.HTTPPathIntermediary
+
+object RESTHelper {
+  implicit class RESTHelper(val sc: StringContext) extends AnyVal {
+    def rest(args: Any*): Unit = {
+
+    }
+  }
+}
+
+class RESTEndpoint(path: String) extends HTTPPathIntermediary(path) {
+
   
+  //rest"/"
 }

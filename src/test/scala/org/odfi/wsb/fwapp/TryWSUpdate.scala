@@ -18,8 +18,24 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.odfi.wsb.fwapp.lib.security
+package org.odfi.wsb.fwapp
 
-class AuthenticationToken {
+
+import com.idyria.osi.ooxoo.lib.json.JSonUtilTrait
+import org.odfi.wsb.fwapp.module.semantic.SemanticView
+
+object TryWSUpdate extends App {
+  
+  new SemanticView {
+    var update = new SemanticProgressUpdate with JSonUtilTrait
+    update.TargetID = "ID"
+    update.Percent = 0.5
+    println(s"R: "+update.toJSONString)
+    
+  }
+  
+  
+  
+  
   
 }

@@ -18,8 +18,24 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.odfi.wsb.fwapp.lib.security
+package org.odfi.wsb.fwapp
 
-class AuthenticationToken {
+
+import org.odfi.wsb.fwapp.lib.chart.plotly.PlotlyView
+
+
+object Sandbox extends App {
+  
+  val lc = new PlotlyView {
+    
+    val c = new PlotlyLineChart
+    c.TargetID = "abc"
+    
+    c.yPoints ++= List(0,1,2,3)
+    
+    println(c.toJSONString)
+  }
+  
+  
   
 }
