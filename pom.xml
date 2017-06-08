@@ -71,7 +71,6 @@
 								<root>src/test/scala</root>
 								<root>target/generated-sources</root>
 							</roots>
-							<excludes>
 						</configuration>
 					</execution>
 				</executions>
