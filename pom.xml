@@ -63,6 +63,18 @@
 							<goal>update-file-header</goal>
 						</goals>
 						<phase>process-sources</phase>
+						<configuration>
+							<addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
+							<dryRun>false</dryRun>
+							<roots>
+								<root>src/main/scala</root>
+								<root>src/test/scala</root>
+								<root>target/generated-sources</root>
+							</roots>
+							<excludes>
+							<exclude>**/external/**.*</exclude>
+							</excludes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
