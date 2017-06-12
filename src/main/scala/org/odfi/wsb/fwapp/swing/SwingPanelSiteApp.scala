@@ -47,11 +47,12 @@ import java.awt.Cursor
 class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
 
   var disableGUI = false
-  
+  var startupFrame: Option[JFrame] = None
+
   this.onStart {
     GraphicsEnvironment.isHeadless() match {
-      case true =>
-      case false if(disableGUI) => 
+      case true                  =>
+      case false if (disableGUI) =>
       case other =>
 
         //frame.add(new JLabel(new ImageIcon(getClass.getClassLoader.getResource("fwapp/ui/logo.png"))), BorderLayout.CENTER)
@@ -59,8 +60,9 @@ class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
         this.engine.network.connectors.foreach {
           case hc: HTTPConnector =>
             onSwingThreadLater {
-              
+
               var frame = new JFrame()
+              startupFrame = Some(frame)
               frame.setSize(600, 300)
               frame.getContentPane.setBackground(Color.WHITE)
 
@@ -69,7 +71,7 @@ class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
 
               frame.add(svgPanel, BorderLayout.CENTER)
 
-             var l = new JLabel(s"${getDisplayName} : http://localhost:${hc.port}${this.basePath}/")
+              var l = new JLabel(s"${getDisplayName} : http://localhost:${hc.port}${this.basePath}/")
               l.setCursor(new Cursor(Cursor.HAND_CURSOR))
 
               l.setFont(new Font("Sans Serif", Font.BOLD, 22))
@@ -87,6 +89,15 @@ class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
 
               frame.setVisible(true)
               centerOnScreen(frame)
+
+              // Shutdown hook
+              this.onShutdown {
+                onSwingThreadAndWait {
+                  startupFrame.get.dispose()
+                   
+                }
+              }
+
             }
           case other =>
         }

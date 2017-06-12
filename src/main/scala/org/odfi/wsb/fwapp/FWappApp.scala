@@ -33,6 +33,7 @@ import org.apache.http.HttpResponse
 import com.idyria.osi.wsb.webapp.http.message.HTTPResponse
 import com.idyria.osi.wsb.core.broker.tree.Intermediary
 import org.odfi.wsb.fwapp.assets.AssetsSource
+import org.odfi.indesign.core.main.IndesignPlatorm
 
 trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
 
@@ -95,6 +96,11 @@ trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
     engine.network.addConnector(conn)
     conn
 
+  }
+  
+  def start = {
+    IndesignPlatorm use this
+    IndesignPlatorm.start
   }
 
 }
