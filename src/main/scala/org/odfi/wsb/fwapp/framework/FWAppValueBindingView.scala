@@ -21,7 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package org.odfi.wsb.fwapp.framework
 
 import com.idyria.osi.ooxoo.core.buffers.datatypes.BooleanBuffer
-import com.idyria.osi.wsb.webapp.localweb.LocalWebHTMLVIew
 import com.idyria.osi.ooxoo.core.buffers.datatypes.IntegerBuffer
 import com.idyria.osi.ooxoo.core.buffers.datatypes.XSDStringBuffer
 import com.idyria.osi.vui.html.Textarea
