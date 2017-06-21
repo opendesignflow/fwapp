@@ -64,8 +64,12 @@ trait FWAPPJMX extends FWappApp {
 
           logInfo[FWAPPJMX]("Found manager bean: " + managerBean)
 
-          managerInterface.stop
-
+          try {
+            managerInterface.stop
+          } catch {
+            case e: Throwable =>
+              logWarn[FWAPPJMX]("During JMX Stopping of previous instance, an error occured: " + e.getLocalizedMessage)
+          }
         case None =>
       }
 

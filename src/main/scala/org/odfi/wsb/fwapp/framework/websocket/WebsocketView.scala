@@ -37,8 +37,8 @@ trait WebsocketView extends FWAppFrameworkView {
         //-- Make sure Session is created
         ensureSession
         //this.request.get.getSession
-       // println(s"Cleaning websocket connected listeners")
-       // this.listeningPoints = listeningPoints - "websocket.connected"
+        // println(s"Cleaning websocket connected listeners")
+        // this.listeningPoints = listeningPoints - "websocket.connected"
         script(createAssetsResolverURI("/fwapp/websocket/websocket.js")) {
 
         }
@@ -49,7 +49,7 @@ trait WebsocketView extends FWAppFrameworkView {
 
   // Connection Made
   //-------------
- /* override def rerender = {
+  /* override def rerender = {
     println(s"Cleaning websocket connected listeners")
     this.listeningPoints = listeningPoints - "websocket.connected"
     super.rerender
@@ -82,25 +82,29 @@ trait WebsocketView extends FWAppFrameworkView {
   //--------------
   this.onParentResourceAdded {
     //println("**** Adding Websocket intermediary")
-    val p = this.findUpchainResource[FWAppViewIntermediary].get
-    //val p = this.parentResource.get.asInstanceOf[FWAppViewIntermediary]
-    p.intermediaries.find {
-      case i: WebsocketPathIntermediary => true
-      case i                            => false
-    } match {
-      //-- Add Websocket intermediary
-      case None =>
+    this.findUpchainResource[FWAppViewIntermediary] match {
+      case Some(p) =>
+        p.intermediaries.find {
+          case i: WebsocketPathIntermediary => true
+          case i                            => false
+        } match {
+          //-- Add Websocket intermediary
+          case None =>
 
-        var websocket = new WebsocketPathIntermediary("/websocket")
-        websocket.onWebsocketConnected {
-          this.@->("websocket.connected")
+            var websocket = new WebsocketPathIntermediary("/websocket")
+            websocket.onWebsocketConnected {
+              this.@->("websocket.connected")
+            }
+            p.parentIntermediary <= websocket
+
+          // println("Adding ws to " + p.fullURLPath)
+
+          case other =>
         }
-        p.parentIntermediary <= websocket
-
-      // println("Adding ws to " + p.fullURLPath)
-
-      case other =>
+      case None =>
     }
+  
+
   }
 
   // Send backend Message

@@ -36,4 +36,14 @@ $(function() {
 		
 	});
 	
+	fwapp.websocket.onPushData("PlotlyAddPoint", function(payload) {
+		var tid = payload.TargetID;
+		console.log("Adding point plotly..."+tid+ " -> "+payload.point);
+		
+		var plotDiv = document.getElementById(tid);
+		
+		Plotly.extendTraces(plotDiv, {y: [[payload.point]]}, [0]);
+		
+	});
+	
 });

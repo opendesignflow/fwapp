@@ -2,3 +2,4 @@
 target/
 doc/build/
 config/
+**/*.scala_*
