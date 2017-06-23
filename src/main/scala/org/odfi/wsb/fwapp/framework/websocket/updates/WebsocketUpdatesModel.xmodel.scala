@@ -45,6 +45,7 @@ object WebsocketUpdatesModel extends ModelBuilder {
   "UpdateText" is {
     withTrait(common)
     "Text" ofType("cdata")
+    "Classes" ofType("string")
   }
   
   "UpdateHTML" is {

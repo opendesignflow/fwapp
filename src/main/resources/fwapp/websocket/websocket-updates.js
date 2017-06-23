@@ -46,7 +46,14 @@ $(function() {
 				
 				targetElement.attr("value",fwapp.decodeHTML(updateText.Text));
 			} else {
+				
+				//-- Udpate text
 				targetElement.html(fwapp.decodeHTML(updateText.Text));
+				
+				//-- update classes?
+				if (updateText.Classes) {
+					targetElement.attr("class",updateText.Classes);
+				}
 			}
 			
 		}
