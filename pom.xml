@@ -62,7 +62,7 @@
 						<goals>
 							<goal>update-file-header</goal>
 						</goals>
-						<phase>process-sources</phase>
+<!-- 						<phase>process-sources</phase> -->
 						<configuration>
 							<addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
 							<dryRun>false</dryRun>
