@@ -115,6 +115,11 @@ trait FWAppTempBufferView extends FWAppValueBindingView {
     case Some(v) => cl(v)
     case None    =>
   }
+  
+  /**
+   * @see onTempBufferValue
+   */
+  def withTempBufferValue[VT <: Any: ClassTag](name: String)(cl: VT => Any) = onTempBufferValue[VT](name)(cl)
 
   /**
    * Save value, remove all values which start with name. to allow hierarchical usage of variables
