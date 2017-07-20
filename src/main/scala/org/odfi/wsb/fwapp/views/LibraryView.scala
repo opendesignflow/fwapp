@@ -1,20 +1,3 @@
-package org.odfi.wsb.fwapp.views
-
-import com.idyria.osi.vui.html.Html
-import com.idyria.osi.vui.html.Head
-import com.idyria.osi.vui.html.HTMLNode
-import org.w3c.dom.html.HTMLElement
-import com.idyria.osi.vui.html.Body
-import org.odfi.wsb.fwapp.assets.AssetsManager
-import org.odfi.wsb.fwapp.assets.AssetsSource
-import scala.collection.mutable.LinkedHashMap
-import com.idyria.osi.vui.html.Script
-import com.idyria.osi.vui.html.Stylesheet
-
-trait LibraryView extends FWappView {
-
-  var libraries = new LinkedHashMap[String, List[(Option[AssetsSource], HTMLNode[HTMLElement, Any]) => Any]]();
-
 /*-
  * #%L
  * FWAPP Framework
@@ -35,6 +18,24 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+package org.odfi.wsb.fwapp.views
+
+import com.idyria.osi.vui.html.Html
+import com.idyria.osi.vui.html.Head
+import com.idyria.osi.vui.html.HTMLNode
+import org.w3c.dom.html.HTMLElement
+import com.idyria.osi.vui.html.Body
+import org.odfi.wsb.fwapp.assets.AssetsManager
+import org.odfi.wsb.fwapp.assets.AssetsSource
+import scala.collection.mutable.LinkedHashMap
+import com.idyria.osi.vui.html.Script
+import com.idyria.osi.vui.html.Stylesheet
+
+trait LibraryView extends FWappView {
+
+  var libraries = new LinkedHashMap[String, List[(Option[AssetsSource], HTMLNode[HTMLElement, Any]) => Any]]();
+
+
  var librariesPlaced = false
   var librariesPlacedLocation: Option[HTMLNode[HTMLElement, _]] = None
 
