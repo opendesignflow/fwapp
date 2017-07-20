@@ -141,7 +141,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                 req.getURLParameter("_action") match {
                   case Some(actionName) =>
 
-                    logInfo[FWappIntermediary]("Calling Action " + actionName)
+                    logInfo[FWAppViewIntermediary]("Calling Action " + actionName)
 
                     //-- Create Action Result
                     var res = new ActionResult
@@ -195,7 +195,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                           case Some(action) =>
 
                             try {
-
+                              logInfo[FWAppViewIntermediary]("Running Action " + actionId)
                               val actionResult = action._2(action._1).toString()
                               val savedResult = res.results.add
                               savedResult.hint = "run-result"
@@ -207,6 +207,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                               case e: Throwable =>
 
                                 //println("Error from actino: " + e.getLocalizedMessage)
+                                logInfo[FWAppViewIntermediary]("Error in Action:" + e.getLocalizedMessage)
 
                                 res.success = false
                                 var error = res.errors.add
@@ -241,60 +242,70 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
 
             //-- Render
             try {
-              req.getURLParameter("_render") match {
-                case None =>
-                  //logInfo[FWappIntermediary]("Rerender full")
+              view match {
+                case frview: FWAppFrameworkView if (frview.hasActionErrors && isJSONFormat) =>
+
+                  //-- Clear request errors, because the current error has priority
+                  req.clearErrors
+
+                  //-- Set Code
                   resp.clearResults
-                  resp.htmlContent = view.rerender
-                //println(s"Text res: "+resp.htmlContent.get.toString())
-                // logFine[FWappIntermediary]("Result: "+resp.htmlContent.get.toString()) 
+                  resp.code = 500
 
-                case Some("partial") =>
+                  //-- Output errors
+                  var res = frview.actionResults.head._2
+                  resp.contentType = "application/json"
+                  resp.content = ByteBuffer.wrap(("{" + res.toJSONString + "}").getBytes)
+
+                // Error in framework view -> just rerender
+                case frview: FWAppFrameworkView if (frview.hasActionErrors) =>
+
+                  //-- Set Code
                   resp.clearResults
+                  resp.code = 500
                   resp.htmlContent = view.rerender
 
-                case Some("full") =>
+                case frview: FWAppFrameworkView if (frview.hasActionResult && isJSONFormat) =>
 
-                  resp.clearResults
-                  resp.htmlContent = view.rerender
+                  logInfo[FWAppViewIntermediary]("Action ok")
+                  var res = frview.actionResults.head._2
+                  resp.code = 200
+                  resp.contentType = "application/json"
+                  resp.content = ByteBuffer.wrap(("{" + res.toJSONString + "}").getBytes)
 
-                //-- Other values don't render view
-                //-- Return action result?
+                // Normal rendering
                 case other =>
 
-                  logInfo[FWappIntermediary]("No render, returning action result?")
+                  //resp.code = 200
+                  //resp.contentType = "text/plain"
+                  //resp.content = ByteBuffer.wrap("".getBytes)
 
-                  view match {
-                    case frview: FWAppFrameworkView if (frview.hasActionErrors && isJSONFormat) =>
-
-                      //-- Clear request errors, because the current error has priority
-                      req.clearErrors
-
-                      //-- Set Code
+                  req.getURLParameter("_render") match {
+                    case None =>
+                      //logInfo[FWAppViewIntermediary]("Rerender full")
                       resp.clearResults
-                      resp.code = 500
+                      resp.htmlContent = view.rerender
+                    //println(s"Text res: "+resp.htmlContent.get.toString())
+                    // logFine[FWAppViewIntermediary]("Result: "+resp.htmlContent.get.toString()) 
 
-                      //-- Output errors
-                      var res = frview.actionResults.head._2
-                      resp.contentType = "application/json"
-                      resp.content = ByteBuffer.wrap(("{" + res.toJSONString + "}").getBytes)
+                    case Some("partial") =>
+                      resp.clearResults
+                      resp.htmlContent = view.rerender
 
-                    case frview: FWAppFrameworkView if (frview.hasActionResult) =>
+                    case Some("full") =>
 
-                      logInfo[FWappIntermediary]("Action ok")
-                      var res = frview.actionResults.head._2
-                      resp.code = 200
-                      resp.contentType = "application/json"
-                      resp.content = ByteBuffer.wrap(("{" + res.toJSONString + "}").getBytes)
+                      resp.clearResults
+                      resp.htmlContent = view.rerender
 
+                    //-- Other values don't render view
+                    //-- Return action result?
                     case other =>
 
-                      resp.code = 200
-                      resp.contentType = "text/plain"
-                      resp.content = ByteBuffer.wrap("".getBytes)
-                  }
+                      logInfo[FWAppViewIntermediary]("No render, returning action result?")
 
+                  }
               }
+
             } catch {
               case e: Throwable =>
                 req(e)
@@ -329,6 +340,8 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
 
               //-- For normal render, return error page
               case true =>
+
+                logInfo[FWAppViewIntermediary]("Detected Error in request result")
 
                 //-- Set Code
                 resp.clearResults
