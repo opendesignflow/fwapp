@@ -92,6 +92,20 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
     case other => None
   }
   
+  /**
+   * Returns Some or None with value of URL paramter in request (GET or url encoded POST)
+   * Also returns None if the parameter is an empty string
+   */
+  def withNonEmptyRequestParameter(name:String) = request match {
+    case Some(r) if (r.getURLParameter(name).isDefined && r.getURLParameter(name).get.trim().length()>0 ) => r.getURLParameter(name)
+    case other => None
+  }
+  
+   def withRequiredRequestParameter(name:String) = request match {
+    case Some(r) if (r.getURLParameter(name).isDefined) => r.getURLParameter(name).get
+    case other => sys.error(s"Required URL Parameter: ${name} was not found")
+  }
+  
   def withRequestParameterAndResult[T](name:String)(search:String => Option[T]) : Option[T] = {
     withRequestParameter(name) match {
       case Some(value) =>
@@ -104,6 +118,8 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
     case None => d 
     case Some(v) => v.toInt 
   }
+  
+  
   
   // URI/Path Utils
   //-----------
@@ -161,6 +177,11 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
     }
 
   }
+  
+  
+  /**
+   * 
+   */
   def createAssetsResolverURI(path: String) = {
     new URI(getApp match {
       case Some(app) if (app.assetsResolver.isDefined) =>
@@ -175,6 +196,17 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
         path.replaceAll("//+", "/")
     })
   }
+  
+  /**
+   * Create an Assets path to the deffault assets resolver/SITEPATH/PATH
+   */
+  def createDefaultAssetsResolverURI(path:String) = {
+    getApp match {
+      case Some(app) => createAssetsResolverURI(app.basePath+"/"+path)
+      case None =>  createAssetsResolverURI(path)
+    }
+  }
+  
 
   def getAssetsResolver = getApp match {
     case Some(app) =>
