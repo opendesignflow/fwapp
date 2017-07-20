@@ -42,6 +42,7 @@
 		<wsb.core.version>3.3.1</wsb.core.version>
 		<wsb.webapp.version>2.2.0-SNAPSHOT</wsb.webapp.version>
 		<indesign.core.version>1.2.0-SNAPSHOT</indesign.core.version>
+		<vui2.version>2.2.0-SNAPSHOT</vui2.version>
 	</properties>
 
 	<build>
