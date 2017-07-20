@@ -43,6 +43,8 @@ import java.awt.event.MouseAdapter
 import java.awt.Desktop
 import java.net.URI
 import java.awt.Cursor
+import java.awt.event.WindowStateListener
+import java.awt.event.WindowEvent
 
 class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
 
@@ -91,12 +93,25 @@ class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
               centerOnScreen(frame)
 
               // Shutdown hook
-              this.onShutdown {
+              //---------
+              /*this.onShutdown {
                 onSwingThreadAndWait {
                   startupFrame.get.dispose()
                    
                 }
+              }*/
+              
+              // Shutdown on Closing
+              //------------
+              sys.addShutdownHook {
+                println("Shutdown hook")
+                moveToShutdown
               }
+              /*frame.addWindowStateListener(new WindowStateListener {
+                def windowStateChanged(ev: java.awt.event.WindowEvent) : Unit = {
+                  if(ev.getNewState==WindowEvent.
+                }
+              })*/
 
             }
           case other =>
