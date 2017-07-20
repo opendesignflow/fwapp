@@ -88,6 +88,27 @@ trait FWAppValueBufferView extends FWAppValueBindingView {
 
   }
   
+   def inputToBuffer(vb:DoubleBuffer)(cl: => Any) : Input[HTMLElement,_]  = {
+    input {
+      bindBufferValue(vb)
+      cl
+    }
+  }
+  
+  def inputToBuffer(vb:IntegerBuffer)(cl: => Any) : Input[HTMLElement,_] = {
+    input {
+      bindBufferValue(vb)
+      cl
+    }
+  }
+  
+  def inputToBuffer(vb:BooleanBuffer)(cl: => Any) : Input[HTMLElement,_] = {
+    input {
+      bindBufferValue(vb)
+      cl
+    }
+  }
+  
   def inputToBufferWithlabel(name:String,vb:DoubleBuffer)(cl: => Any) : Input[HTMLElement,_]  = {
     input {
       label(name) {

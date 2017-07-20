@@ -78,10 +78,24 @@ trait FWappResourceValueBindingView extends FWAppValueBufferView {
   // Utils to work with buffers
   //-------------
   
+   /**
+   * Updated buffer after 500ms and runs provided closure
+   */
   def inputToBufferAfter500MS(b:XSDStringBuffer) = {
     inputBindAfter500MSInit(b) {
       str => 
         b.set(str)
+    }
+  }
+  
+  /**
+   * Updated buffer after 500ms and runs provided closure
+   */
+  def inputToBufferAfter500MSAnd(b:XSDStringBuffer)(cl: => Any) = {
+     inputBindAfter500MSInit(b) {
+      str => 
+        b.set(str)
+        cl
     }
   }
   
