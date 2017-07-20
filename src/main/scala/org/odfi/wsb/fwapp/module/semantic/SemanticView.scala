@@ -37,6 +37,8 @@ import com.idyria.osi.ooxoo.core.buffers.datatypes.DoubleBuffer
 import com.idyria.osi.ooxoo.core.buffers.structural.xelement
 import com.idyria.osi.vui.html.Div
 import org.odfi.wsb.fwapp.framework.websocket.WebsocketView
+import com.idyria.osi.vui.html.Input
+import com.idyria.osi.vui.html.Select
 
 trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIImplView with AssetsGeneratorView with WebsocketView {
 
@@ -50,7 +52,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
         script(createAssetsResolverURI(s"/semantic/semantic.min.js")) {
           //+@("async" -> true)
         }
-        
+
         script(createAssetsResolverURI(s"/fwapp/lib/semantic/semantic-progress.js")) {
           //+@("async" -> true)
         }
@@ -63,9 +65,9 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
         }
 
         script(createAssetsResolverURI(s"/fwapp/external/semantic/semantic.min.js")) {
-         // +@("async" -> true)
+          // +@("async" -> true)
         }
-        
+
         script(createAssetsResolverURI(s"/fwapp/lib/semantic/semantic-progress.js")) {
           //+@("async" -> true)
         }
@@ -96,10 +98,26 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
       classes("ui form")
       +@("method" -> "post")
       id("semantic-" + currentNode.hashCode())
-      cl
 
       // FIXME If no error, add 
-      importHTML(<div class="ui error message"></div>)
+      hasActionErrors match {
+        case true =>
+          actionResults.foreach {
+            case (actionid, res) =>
+              res.errors.foreach {
+                err =>
+                  "ui error message" :: div {
+                    cssForceBlockDisplay
+                    text(err.message)
+                  }
+              }
+
+          }
+        case false =>
+          importHTML(<div class="ui error message"></div>)
+      }
+
+      cl
 
     }
 
@@ -111,60 +129,53 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     }*/
 
     //-- Take Validation and generate script
-    this.jqueryGenerateOnLoad("form-validation-" + sform.getId) match {
-      case Some(generator) =>
+    //-- look for required to prepare constraints
+    var contraints = sform.onSubNodesMap {
+      case node: HTMLNode[HTMLElement, _] =>
 
-        generator.println("console.info('From generated');")
+        // prepare constaints
+        var nodeContraints = List[String]()
 
+        if (node.hasAttribute("required"))
+          nodeContraints = nodeContraints :+ "empty"
 
-        //-- look for required
-        var contraints = sform.onSubNodesMap {
-          case node: HTMLNode[HTMLElement, _] =>
+        node.onDataOfType[String]("semantic-validation-type") {
+          ftype =>
+            nodeContraints = nodeContraints :+ ftype
+        }
+        node.onDataOfType[List[String]]("semantic-validation-not") {
+          nots =>
+            nodeContraints = nodeContraints ++ (nots.map { n => s"not[$n]" })
 
-            // prepare constaints
-            var nodeContraints = List[String]()
-
-            if (node.hasAttribute("required"))
-              nodeContraints = nodeContraints :+ "empty"
-
-            node.onDataOfType[String]("semantic-validation-type") {
-              ftype =>
-                nodeContraints = nodeContraints :+ ftype
-            }
-            node.onDataOfType[List[String]]("semantic-validation-not") {
-              nots =>
-                nodeContraints = nodeContraints ++ (nots.map { n => s"not[$n]" })
-
-            }
-
-            // If no constraints, return empty
-            nodeContraints.size match {
-              case 0 =>
-                ""
-              case other =>
-                // Make constraints string
-                val nodeConstraintsString = nodeContraints.mkString("['", "','", "']")
-
-                s"'" + node.attribute("name") + s"' : $nodeConstraintsString"
-            }
-
-        }.filterNot(_.isEmpty())
-
-        /*var requiredConstraints = sform.onSubNodesMap {
-          case node: HTMLNode[HTMLElement, _] if (node.hasAttribute("required")) =>
-            s"" + node.attribute("name") + " : 'empty'"
         }
 
-        val emailConstaints = sform.onSubNodesMap {
-          case node: HTMLNode[HTMLElement, _] if (node.hasAttribute("field-type") && node.attribute("field-type") == "email") =>
-            s"" + node.attribute("name") + " : 'email'"
-        }*/
+        // If no constraints, return empty
+        nodeContraints.size match {
+          case 0 =>
+            ""
+          case other =>
+            // Make constraints string
+            val nodeConstraintsString = nodeContraints.mkString("['", "','", "']")
 
-        generator.println(s"""$$("#${sform.getId}").form({ on: 'blur',fields: { ${contraints.mkString(",")} }});""")
+            s"'" + node.attribute("name") + s"' : $nodeConstraintsString"
+        }
 
-        generator.close()
+    }.filterNot(_.isEmpty())
 
-      case None =>
+    contraints.isEmpty match {
+      case false =>
+        this.jqueryGenerateOnLoad("form-validation-" + sform.getId) match {
+          case Some(generator) =>
+
+            generator.println("console.info('From generated');")
+
+            generator.println(s"""$$("#${sform.getId}").form({ on: 'blur',fields: { ${contraints.mkString(",")} }});""")
+
+            generator.close()
+
+          case None =>
+        }
+      case true =>
     }
 
     //-- Return
@@ -173,8 +184,8 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
   }
 
   def semanticSubmitButton(btext: String) = {
-    "ui primary submit button" :: div {
-      text(btext)
+    "ui primary submit button" :: button(btext) {
+
     }
   }
 
@@ -189,6 +200,68 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     onSubmit(cl)
     b
   }
+
+  // Semantic Input
+  //-------------------------
+
+  /**
+   * @param id the name of the input field used for form
+   */
+  def semanticFormField(id: String, name: String)(cl: => Any): Div[HTMLElement, Any] = {
+
+    // Make div
+    val res = "field" :: div {
+      label(name) {
+
+      }
+      cl
+    }
+
+    // Apply name to input or select
+    res.findDescendantOfType[Input[HTMLElement, _]] match {
+      case Some(input) =>
+        input.+@("name" -> id)
+      case None =>
+
+        res.findDescendantOfType[Select[HTMLElement, _]] match {
+          case Some(input) =>
+            input.+@("name" -> id)
+          case None =>
+        }
+    }
+
+    res
+
+  }
+
+  def semanticFormField(name: String)(cl: => Any): Div[HTMLElement, Any] = {
+
+    "field" :: div {
+      label(name) {
+
+      }
+      cl
+    }
+
+  }
+
+  /**
+   * "field" :: div {
+   * 	 input {
+   * 			CLOSURE
+   *   }
+   * }
+   */
+  def semanticFormFieldInput(cl: => Any) = {
+    "field" :: div {
+      input {
+        cl
+      }
+    }
+  }
+
+  // Semantic Form Validation
+  //-------------------
 
   def semanticFieldRequire = {
     currentNode.findParentOfType[Form[HTMLElement, _]] match {
@@ -220,10 +293,10 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
   // Local Errors
   //-----------------
-  def semanticActionResult(defaultText:String="") {
+  def semanticActionResult(defaultText: String = "") {
     "ui error fwapp-action-result-placeholder fwapp-action-error message hidden" :: div()
     "ui info fwapp-action-result-placeholder fwapp-action-results message hidden" :: div()
-    if(defaultText!="") {
+    if (defaultText != "") {
       "ui message fwapp-action-result-placeholder fwapp-action-info" :: defaultText
     }
   }
@@ -275,12 +348,83 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
   def semanticTopRight = classes("top right")
   def semanticEffectTransition = classes("transition")
 
+  // Divider
+  //------------------
   def semanticContentThenDivider(cl: => Any) = {
     cl
     semanticDivider
   }
+
+  def semanticDividerThenContent(cl: => Any) = {
+    semanticDivider
+    cl
+  }
+
   def semanticDivider = "ui divider " :: div()
 
+  def semanticH1Divider(text: String) = {
+    h1(text) {
+
+    }
+    semanticDivider
+  }
+  def semanticH2Divider(text: String) = {
+    h2(text) {
+
+    }
+    semanticDivider
+  }
+  def semanticH3Divider(text: String) = {
+    h3(text) {
+
+    }
+    semanticDivider
+  }
+  def semanticH4Divider(text: String) = {
+    h4(text) {
+
+    }
+    semanticDivider
+  }
+  def semanticH5Divider(text: String) = {
+    h5(text) {
+
+    }
+    semanticDivider
+  }
+
+  def semanticH6Divider(text: String) = {
+    h6(text) {
+
+    }
+    semanticDivider
+  }
+  
+  // Messages
+  //---------------
+  def semanticWarningIfEmpty(obj:Option[_])(str:String) = obj match {
+    case None => 
+      "ui warning message" :: str
+    case other => 
+      
+  }
+  
+  def semanticWarningIfEmptyString(obj:XSDStringBuffer)(str:String) = obj match {
+    case b if (b==null || b.data.toString=="") => 
+      "ui warning message" :: str
+    case other => 
+      
+  }
+  def semanticWarningIfEmptyString(obj:String)(str:String) = obj match {
+    case s if (s==null ||s=="") => 
+      "ui warning message" :: str
+    case other => 
+      
+  }
+
+
+  // Sticky
+  //---------------
   def semanticSticky = {
 
     val nodeId = currentNode.getId
@@ -349,7 +493,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
   }
 
-  def semanticObjectsBottomTab[T <: Any](names: Iterable[(T, String)])(cl: (Int, String, T) => Unit) = {
+  def semanticObjectsBottomTab[T <: Any](names: Iterable[(String, T)])(cl: (Int, String, T) => Unit) = {
 
     def cleanName(name: String) = {
       name.replaceAll("\\s+", "_").toLowerCase()
@@ -364,7 +508,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
       //-- Content
       names.zipWithIndex.foreach {
-        case ((obj, name), i) =>
+        case ((name, obj), i) =>
 
           val tabId = cleanName(name)
 
@@ -399,6 +543,50 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
   }
 
+  // Table
+  //-----------
+  def semanticDefinitionTable(headers: String*)(cl: => Any) = {
+
+    "ui definition table" :: table {
+      thead(List("") ::: headers.toList)
+
+      cl
+    }
+  }
+
+  // Menu
+  //---------
+
+  /**
+   * "header" :: { "icon $icon" :: i{}; text(headerText)}
+   */
+  def semanticMenuIconHeader(icon: String, headerText: String) = {
+    "header" :: { s"icon $icon" :: i {}; text(headerText) }
+  }
+
+  // Dropdown
+  //--------------
+
+  /**
+   * creates a
+   *
+   * "ui item @data-value=value" :: div {
+   * 	TEXT
+   * }
+   *
+   * for each (value -> TEXT) pairs provided in the list
+   *
+   */
+  def semanticDropDownItems(options: List[(Any, Any)]) = {
+    options.foreach {
+      case (v, t) =>
+        "ui item" :: div {
+          data("value" -> v)
+          text(t.toString)
+        }
+    }
+  }
+
   // Progress
   //-----------------
   class SemanticProgressUpdate extends ElementBuffer {
@@ -427,8 +615,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     def topAttached = {
       "top attached" :: d
     }
-    
-    
+
     def update(p: Int) = {
       /*val tp = if (p > 100.0) {
         100.0
@@ -455,14 +642,14 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
   def semanticProgress(pid: String) = {
 
-    val targetPid = currentNodeUniqueId(pid+"-progress")
-    
+    val targetPid = currentNodeUniqueId(pid + "-progress")
+
     new SemanticProgressBar("ui progress" :: div {
-      
+
       id(targetPid)
-      
+
       +@("style" -> "display:none")
-      
+
       "bar" :: div {
         importHTML(<div class="progress"></div>)
       }
