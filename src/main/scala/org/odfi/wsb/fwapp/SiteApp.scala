@@ -30,12 +30,14 @@ import org.odfi.wsb.fwapp.swing.SwingPanelSite
 
 
 class DefaultSite(path:String) extends SwingPanelSite(path) {
+  
+  
    //-- Setup default assets
   val assetsManager = this.useDefaultAssets
 
   //-- Setup default config
-  IndesignPlatorm use OOXOOConfigModule
-  OOXOOConfigModule.configFolder = new File(s"config/$path")
+  //IndesignPlatorm use OOXOOConfigModule
+  //OOXOOConfigModule.configFolder = new File(s"config/$path")
 
   /* override def delayedInit(body: => Unit) = {
     super.delayedInit(body)
@@ -46,6 +48,10 @@ class DefaultSite(path:String) extends SwingPanelSite(path) {
     IndesignPlatorm.start
   }*/
 
+  this.onLoad {
+    requireModule(OOXOOConfigModule)
+  }
+  
   this.onStart {
     assetsManager.addDefaultResourcesAssetSource(path)
   }
