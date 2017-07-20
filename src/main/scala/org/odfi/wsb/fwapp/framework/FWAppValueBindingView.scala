@@ -209,28 +209,43 @@ trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingVie
     }
   }
 
-  def selectFromObjects[T](lst: List[(T, String)], current: String)(cl: T => Unit) = {
+  /**
+   * List: (id -> OBJ)
+   */
+  def selectFromObjects[T](lst: Iterable[(String,T)], current: String)(cl: T => Unit) = {
 
     var foundSelected = false
     select {
 
+      var selectedFound = false
       lst.foreach {
-        case (obj, value) =>
+        case (value,obj) =>
 
           option(value) {
             
             //-- Preselect
-            if (value == current) {
+            if (current!=null && (value == current)) {
               +@("selected" -> "true")
+              selectedFound = true
             }
             
+            //-- Content value
+            text(obj.toString)
           }
 
       }
       
+      //-- Add empty option
+      if(!selectedFound) {
+        option("") {
+          +@("selected" -> "true")
+          currentNode.moveToFirstChild
+        }
+      }
+      
       bindValue {
         v : String => 
-          cl(lst.find { case (obj,rv) => rv==v}.get._1)
+          cl(lst.find { case (rv,obj) => rv==v}.get._2)
       }
     }
 
