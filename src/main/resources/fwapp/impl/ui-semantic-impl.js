@@ -32,7 +32,7 @@ $(function() {
 		on : 'click'
 	});
 
-	$('.ui.dropdown.item').dropdown();
+	$('.ui.dropdown').dropdown();
 
 });
 
