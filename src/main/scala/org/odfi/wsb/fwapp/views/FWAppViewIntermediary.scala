@@ -281,14 +281,18 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                   //resp.content = ByteBuffer.wrap("".getBytes)
 
                   req.getURLParameter("_render") match {
-                    case None =>
-                      //logInfo[FWAppViewIntermediary]("Rerender full")
+                    case Some("none") => 
+                      logInfo[FWAppViewIntermediary]("No render, returning action result?")
+                    
+                    case other =>
+                      logFine[FWAppViewIntermediary]("Rerender full")
                       resp.clearResults
                       resp.htmlContent = view.rerender
+                      logFine[FWAppViewIntermediary]("Done Rerender")
                     //println(s"Text res: "+resp.htmlContent.get.toString())
                     // logFine[FWAppViewIntermediary]("Result: "+resp.htmlContent.get.toString()) 
 
-                    case Some("partial") =>
+                   /* case Some("partial") =>
                       resp.clearResults
                       resp.htmlContent = view.rerender
 
@@ -301,7 +305,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                     //-- Return action result?
                     case other =>
 
-                      logInfo[FWAppViewIntermediary]("No render, returning action result?")
+                      logInfo[FWAppViewIntermediary]("No render, returning action result?")*/
 
                   }
               }
