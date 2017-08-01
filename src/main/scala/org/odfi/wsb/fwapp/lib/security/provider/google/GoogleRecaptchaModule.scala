@@ -35,6 +35,7 @@ import com.idyria.osi.tea.io.TeaIOUtils
 import com.google.api.client.json.jackson2.JacksonParser
 import com.google.api.client.json.jackson2.JacksonParser
 import com.google.api.client.json.jackson2.JacksonFactory
+import com.idyria.osi.ooxoo.core.buffers.structural.DataUnit
 
 object GoogleRecaptchaModule extends IndesignModule {
 
@@ -45,7 +46,7 @@ object GoogleRecaptchaModule extends IndesignModule {
     
     
     @xelement(name = "error-codes")
-    var errorCodes = new XList[XSDStringBuffer](_.value)
+    var errorCodes = XList[XSDStringBuffer]({ du : DataUnit => XSDStringBuffer(du.value)})
     
   }
   
