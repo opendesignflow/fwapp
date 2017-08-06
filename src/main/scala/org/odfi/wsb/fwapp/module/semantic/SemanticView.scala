@@ -39,8 +39,9 @@ import com.idyria.osi.vui.html.Div
 import org.odfi.wsb.fwapp.framework.websocket.WebsocketView
 import com.idyria.osi.vui.html.Input
 import com.idyria.osi.vui.html.Select
+import org.odfi.wsb.fwapp.framework.FWAppTempBufferView
 
-trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIImplView with AssetsGeneratorView with WebsocketView {
+trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIImplView with AssetsGeneratorView with WebsocketView with FWAppTempBufferView {
 
   this.addLibrary("semantic") {
     case (Some(source), target) =>
@@ -454,7 +455,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
   def semanticTabLoad = {
     script("""|
               |$(function() {
-              |  $(".ui.tabular .item").tab();
+              |  $(".tabular.menu .item").tab();
               |});
               |""".stripMargin)
   }
@@ -493,7 +494,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
   }
 
-  def semanticObjectsBottomTab[T <: Any](names: Iterable[(String, T)])(cl: (Int, String, T) => Unit) = {
+  def semanticObjectsBottomTab[T <: Any](tabsId:String,names: Iterable[(String, T)])(cl: (Int, String, T) => Unit) = {
 
     def cleanName(name: String) = {
       name.replaceAll("\\s+", "_").toLowerCase()
@@ -502,10 +503,17 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     div {
 
       //-- Header
-      val header = "ui top attached tabular menu" :: div {
+      val header = "ui tabular menu top attached " :: div {
 
       }
+      
+      // Load tabs
+      //semanticTabLoad
 
+      val selectedTab = getTempBufferValue[String]("semantic.tabs."+tabsId+".currentTab")
+      
+      println(s"Selected tab: "+selectedTab)
+      
       //-- Content
       names.zipWithIndex.foreach {
         case ((name, obj), i) =>
@@ -514,19 +522,23 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
           // add to header
           onNode(header) {
-            "item" :: div {
+            "item" :: a("#") {
               data("tab", tabId)
-              if (i == 0) classes("active")
+              currentNode.attributes = currentNode.attributes - "href"
+              if ((selectedTab.isEmpty && i == 0) || (selectedTab.isDefined && selectedTab.get.toString == tabId)) classes("active")
               text(name)
+              onClick {
+                putToTempBuffer("semantic.tabs."+tabsId+".currentTab", tabId)
+              }
 
             }
 
           }
 
           // build content
-          "ui bottom attached active tab segment" :: div {
+          "ui bottom attached tab segment" :: div {
             data("tab", tabId)
-            if (i == 0) classes("active")
+            if ((selectedTab.isEmpty && i == 0) || (selectedTab.isDefined && selectedTab.get.toString == tabId)) classes("active")
             cl(i, name, obj)
           }
 
@@ -537,7 +549,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     }
     script("""|
               |$(function() {
-              |  $(".ui.tabular .item").tab();
+              |  $(".tabular.menu .item").tab();
               |});
               |""".stripMargin)
 
