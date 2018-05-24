@@ -119,7 +119,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.175"
-     inkscape:cx="-840.21692"
+     inkscape:cx="-2397.3598"
      inkscape:cy="244.46893"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -129,8 +129,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
      fit-margin-right="15"
      fit-margin-bottom="5"
      inkscape:window-width="1920"
-     inkscape:window-height="1137"
-     inkscape:window-x="1912"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1" />
   <metadata
@@ -141,7 +141,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -174,7 +174,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <path
        inkscape:export-ydpi="11.408279"
        inkscape:export-xdpi="11.408279"
-       id="path4712"
+       id="bottom"
        d="m -64.846457,118.60238 -46.681273,31.30608 v 46.40729 H 1.9472191 v -33.02167 z"
        style="fill:#20019c;fill-opacity:1;stroke:#000000;stroke-width:0.72349828;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        inkscape:connector-curvature="0" />

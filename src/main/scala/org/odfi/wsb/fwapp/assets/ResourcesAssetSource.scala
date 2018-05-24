@@ -1,3 +1,23 @@
+/*-
+ * #%L
+ * FWAPP Framework
+ * %%
+ * Copyright (C) 2016 - 2017 Open Design Flow
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * #L%
+ */
 package org.odfi.wsb.fwapp.assets
 
 import com.idyria.osi.wsb.webapp.http.message.HTTPResponse
@@ -101,26 +121,7 @@ class ResourcesAssetSource(basePath: String = "/") extends AssetsSource(basePath
               case true =>
                 res = Some(filePath.toURI().toURL());
 
-/*-
- * #%L
- * FWAPP Framework
- * %%
- * Copyright (C) 2016 - 2017 Open Design Flow
- * %%
- * This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * #L%
- */
                found = true;
               case false =>
             }
@@ -151,6 +152,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     res match {
       case None if (enableRandomFile && request.getURLParameter("filePath").isDefined) =>
 
+        //println("Random Request "+request.getURLParameter("filePath").get)
         var randomFile = new File(request.getURLParameter("filePath").get)
         randomFile.exists() match {
           case true => Some(randomFile.toURI().toURL())
@@ -200,7 +202,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
                     (res.group(1), res.group(2)) match {
                       case ("", "") => (-1, -1)
-                      case (start, null) => (start.toInt, -1)
+                      case (start, null) => 
+                         logFine[ResourcesAssetSource](s"From $start to endofFIle")
+                        (start.toInt, -1)
                       case (start, stop) => (start.toInt, stop.toInt)
                     }
                   case None =>
@@ -240,7 +244,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 var requestedLength = totalLength - start
                 
                 
-
+                 logFine[ResourcesAssetSource](s"Returning Remaninig content from $start for $requestedLength bytes")
                 //println(s"Returning Remaninig content: ${resourceStream.available}")
 
                 /*
@@ -257,7 +261,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
               }*/
 
                 response.code = 206
+                //response.addParameter("Content-Range", s"bytes $start-${start + requestedLength - 1}/${requestedLength}")
                 response.addParameter("Content-Range", s"bytes $start-${start + requestedLength - 1}/${requestedLength}")
+                //response.addParameter("Content-Range", s"bytes $start-${start + requestedLength - 1}/0")
 
                 //ByteBuffer.wrap(swallow(resourceStream, start, resourceStream.available()))
 
@@ -265,12 +271,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 //response.content = swallow(resourceStream, start, totalLength)
 
                 // New
-                response.content = swallow(resourceURL, start, requestedLength)
+                response.content = swallow(resourceURL, start, start + requestedLength)
 
               // Range
               case (start, stop) =>
 
-                println(s"Returning Range: ($start,$stop)")
+                logFine[ResourcesAssetSource](s"Returning Range: ($start,$stop)")
                 var totalLength = resourceStream.available
 
                 // Return Partial Content
@@ -445,12 +451,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     // Get Cached bytes 
     var bytes = ResourcesAssetSource.mapAndCache(is)
-
+    
     // Return requested portion
 
     bytes.position(start)
     bytes.limit(stop)
 
+    logFine[ResourcesAssetSource](s"Bytes from: $start to ${stop},L=${stop-start}, remaining is: "+bytes.remaining())
     // bytes.flip()
     //println(s"Got buffer for ${is} $start -> $stop, available: "+bytes.remaining())
 

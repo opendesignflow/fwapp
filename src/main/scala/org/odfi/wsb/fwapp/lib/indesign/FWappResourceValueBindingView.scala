@@ -26,6 +26,11 @@ import org.odfi.indesign.core.harvest.HarvestedResource
 import org.odfi.indesign.core.heart.DefaultHeartTask
 import org.odfi.indesign.core.heart.Heart
 import com.idyria.osi.ooxoo.core.buffers.datatypes.XSDStringBuffer
+import com.idyria.osi.ooxoo.core.buffers.datatypes.IntegerBuffer
+import com.idyria.osi.ooxoo.core.buffers.datatypes.fs.FileBuffer
+import java.io.File
+import com.idyria.osi.ooxoo.core.buffers.datatypes.URIBuffer
+import java.net.URI
 
 trait FWappResourceValueBindingView extends FWAppValueBufferView {
 
@@ -88,10 +93,41 @@ trait FWappResourceValueBindingView extends FWAppValueBufferView {
     }
   }
   
+  def inputToBufferAfter500MS(b:IntegerBuffer) = {
+    inputBindAfter500MSInit(b) {
+      v => 
+        b.set(v)
+    }
+  }
+  
+   def inputToBufferAfter500MS(b:URIBuffer) = {
+    inputBindAfter500MSInit(b) {
+      v => 
+        println("Updating URI Buffer")
+        b.set(v)
+    }
+  }
+  
+  def inputToBufferAfter500MS(b:FileBuffer) = {
+    inputBindAfter500MSInit(b) {
+      f => 
+        println("Setting FIle bufdder: "+f)
+        b.set(f)
+    }
+  }
+  
   /**
    * Updated buffer after 500ms and runs provided closure
    */
   def inputToBufferAfter500MSAnd(b:XSDStringBuffer)(cl: => Any) = {
+     inputBindAfter500MSInit(b) {
+      str => 
+        b.set(str)
+        cl
+    }
+  }
+  
+   def inputToBufferAfter500MSAnd(b:FileBuffer)(cl: => Any) = {
      inputBindAfter500MSInit(b) {
       str => 
         b.set(str)
@@ -106,5 +142,26 @@ trait FWappResourceValueBindingView extends FWAppValueBufferView {
     }
     inputBindAfterDelayInit(realInit)(500)(cl)
   }
+  
+  def inputBindAfter500MSInit(init: URIBuffer)(cl: URI => Unit) = {
+    val realInit = init.toString
+    inputBindAfterDelayInit(realInit)(500) {
+      v => 
+        cl(new URI(v))
+    }
+  }
+  
+  def inputBindAfter500MSInit(init: IntegerBuffer)(cl: Int => Unit) = {
+    val realInit = init.data
+    
+    inputBindAfterDelayInit(realInit)(500)(cl)
+  }
+  
+  def inputBindAfter500MSInit(init: FileBuffer)(cl: File => Unit) = {
+    val realInit = init.data
+    
+    inputBindAfterDelayInit(realInit)(500)(cl)
+  }
+
 
 }

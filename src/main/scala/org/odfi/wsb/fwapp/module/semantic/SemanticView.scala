@@ -100,7 +100,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
       +@("method" -> "post")
       id("semantic-" + currentNode.hashCode())
 
-      // FIXME If no error, add 
+      // FIXME If no error, add
       hasActionErrors match {
         case true =>
           actionResults.foreach {
@@ -261,6 +261,64 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     }
   }
 
+  // Semantic inputs
+  //----------------------
+
+  /**
+   * Creates div and input
+   */
+  def semanticFluidInput(cl: => Any) = {
+    "ui fluid input" :: div {
+      input {
+        cl
+      }
+    }
+  }
+
+  /**
+   * Creates Fluid Input and standard HTML label
+   */
+  def semanticLabelFluidInput(name: String)(cl: => Any) = {
+    "ui fluid input" :: div {
+      "ui label" :: label(name) {
+        input {
+          cl
+        }
+      }
+
+    }
+  }
+
+  /**
+   * Create Fluid input with semantic Label on the left
+   */
+  def semanticLeftLabeledFluidInput(name: String)(cl: => Any) = {
+    "ui fluid labeled input" :: div {
+
+      "ui label" :: name
+
+      input {
+        cl
+      }
+
+    }
+  }
+
+  def semanticActionFluidInput(label: String)(action: String)(cl: => Any) = {
+
+    "ui fluid action input" :: div {
+
+      input {
+        +@("placeholder" -> label)
+        cl
+      }
+
+      semanticSubmitButton(action)
+      //"ui submit button" :: action
+
+    }
+  }
+
   // Semantic Form Validation
   //-------------------
 
@@ -400,29 +458,43 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     }
     semanticDivider
   }
-  
-  // Messages
+
+  // Messages and checks
   //---------------
-  def semanticWarningIfEmpty(obj:Option[_])(str:String) = obj match {
-    case None => 
+  def semanticWarningIfEmpty(obj: Option[_])(str: String) = obj match {
+    case None =>
       "ui warning message" :: str
-    case other => 
-      
-  }
-  
-  def semanticWarningIfEmptyString(obj:XSDStringBuffer)(str:String) = obj match {
-    case b if (b==null || b.data.toString=="") => 
-      "ui warning message" :: str
-    case other => 
-      
-  }
-  def semanticWarningIfEmptyString(obj:String)(str:String) = obj match {
-    case s if (s==null ||s=="") => 
-      "ui warning message" :: str
-    case other => 
-      
+    case other =>
+
   }
 
+  def semanticWarningIfEmptyString(obj: XSDStringBuffer)(str: String) = obj match {
+    case b if (b == null || b.data.toString == "") =>
+      "ui warning message" :: str
+    case other =>
+
+  }
+  def semanticWarningIfEmptyString(obj: String)(str: String) = obj match {
+    case s if (s == null || s == "") =>
+      "ui warning message" :: str
+    case other =>
+
+  }
+  def semanticWarningIfEmptyStringElse(obj: String)(str: String)(cl: => Any) = obj match {
+    case s if (s == null || s == "") =>
+      "ui warning message" :: str
+    case other =>
+      cl
+
+  }
+
+  def semanticWarningIfEmptyListElseForeach[T](obj: Iterable[T])(str: String)(cl: T => Any) = obj.size match {
+    case 0 =>
+      "ui warning message" :: str
+    case other =>
+      obj.foreach(cl)
+
+  }
 
   // Sticky
   //---------------
@@ -448,8 +520,65 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     data("tab" -> tab)
   }
 
-  def semanticTabDiv(tab: String)(cl: => Any) {
+  def semanticNamedTabs(names: String*)(cl: PartialFunction[(Int, String), Any]) = {
+    div {
 
+      //-- Header
+      val header = "ui tabular menu top attached " :: div {
+
+      }
+
+      // Load tabs
+      //semanticTabLoad
+
+      val selectedTab = getTempBufferValue[String]("semantic.tabs.namedTabs.currentTab")
+
+      println(s"Selected tab: " + selectedTab)
+
+      //-- Content
+      names.zipWithIndex.foreach {
+        case (name, i) =>
+
+          val tabId = semanticMakeTabId(name)
+
+          // add to header
+          onNode(header) {
+            "item" :: a("#") {
+              data("tab", tabId)
+              currentNode.attributes = currentNode.attributes - "href"
+              if ((selectedTab.isEmpty && i == 0) || (selectedTab.isDefined && selectedTab.get.toString == tabId)) classes("active")
+              text(name)
+              onClick {
+                putToTempBuffer("semantic.tabs.namedTabs.currentTab", tabId)
+              }
+
+            }
+
+          }
+
+          // build content
+          "ui bottom attached tab segment" :: div {
+            data("tab", tabId)
+            if ((selectedTab.isEmpty && i == 0) || (selectedTab.isDefined && selectedTab.get.toString == tabId)) classes("active")
+            cl(i, name)
+          }
+
+      }
+
+      //-- Contents
+
+    }
+    script("""|
+              |$(function() {
+              |  $(".tabular.menu .item").tab();
+              |});
+              |""".stripMargin)
+  }
+
+  def semanticTabDiv(tab: String)(cl: => Any) {
+    div {
+      semanticTabLink(tab)
+    }
   }
 
   def semanticTabLoad = {
@@ -494,7 +623,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
   }
 
-  def semanticObjectsBottomTab[T <: Any](tabsId:String,names: Iterable[(String, T)])(cl: (Int, String, T) => Unit) = {
+  def semanticObjectsBottomTab[T <: Any](tabsId: String, names: Iterable[(String, T)])(cl: (Int, String, T) => Unit) = {
 
     def cleanName(name: String) = {
       name.replaceAll("\\s+", "_").toLowerCase()
@@ -506,14 +635,14 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
       val header = "ui tabular menu top attached " :: div {
 
       }
-      
+
       // Load tabs
       //semanticTabLoad
 
-      val selectedTab = getTempBufferValue[String]("semantic.tabs."+tabsId+".currentTab")
-      
-      println(s"Selected tab: "+selectedTab)
-      
+      val selectedTab = getTempBufferValue[String]("semantic.tabs." + tabsId + ".currentTab")
+
+      println(s"Selected tab: " + selectedTab)
+
       //-- Content
       names.zipWithIndex.foreach {
         case ((name, obj), i) =>
@@ -528,7 +657,7 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
               if ((selectedTab.isEmpty && i == 0) || (selectedTab.isDefined && selectedTab.get.toString == tabId)) classes("active")
               text(name)
               onClick {
-                putToTempBuffer("semantic.tabs."+tabsId+".currentTab", tabId)
+                putToTempBuffer("semantic.tabs." + tabsId + ".currentTab", tabId)
               }
 
             }
@@ -652,9 +781,23 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
     }
   }
 
+  def semanticSetProgress(pid: String, percent: Int,message:String="") = {
+    val pmessage = new SemanticProgressUpdate
+    pmessage.TargetID = pid
+    pmessage.Percent = percent
+    message match {
+      case "" => 
+      case m =>
+        pmessage.Message = m
+     
+    }
+    //println(s"Progress Bar sending data..."+d.getId)
+    broadCastSOAPBackendMessage(pmessage)
+  }
+
   def semanticProgress(pid: String) = {
 
-    val targetPid = currentNodeUniqueId(pid + "-progress")
+    val targetPid = pid
 
     new SemanticProgressBar("ui progress" :: div {
 
@@ -682,6 +825,23 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
         case None =>
       }
     })
+  }
+
+  // Accordion
+  //-----------------
+  def semanticStandardAccordion(title: String)(cl: => Any) = {
+
+    "ui accordion" :: div {
+      "ui title" :: div {
+        "ui dropdown icon" :: i {
+
+        }
+        text(title)
+      }
+      "content" :: div {
+        cl
+      }
+    }
   }
 
 }

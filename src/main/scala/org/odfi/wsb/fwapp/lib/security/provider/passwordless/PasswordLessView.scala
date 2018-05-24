@@ -63,7 +63,7 @@ trait PasswordLessView extends SemanticView with SigninView with MarkdownView wi
             "ui success button" :: button("Save User") {
 
               onClickReload {
-                user.save
+                //user.save
               }
 
             }

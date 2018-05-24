@@ -45,15 +45,22 @@ import java.net.URI
 import java.awt.Cursor
 import java.awt.event.WindowStateListener
 import java.awt.event.WindowEvent
+import org.odfi.indesign.core.heart.Heart
+import org.odfi.indesign.core.brain.Brain
+import org.w3c.dom.svg.SVGElement
+import org.w3c.dom.svg.SVGSVGElement
+import org.apache.batik.dom.svg.SVGDocumentFactory
+import org.apache.batik.swing.svg.SVGDocumentLoader
+import org.apache.batik.anim.dom.SAXSVGDocumentFactory
 
 class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
 
   var disableGUI = false
   var startupFrame: Option[JFrame] = None
 
-  this.onStart {
+  this.onInit {
     GraphicsEnvironment.isHeadless() match {
-      case true                  =>
+      case true =>
       case false if (disableGUI) =>
       case other =>
 
@@ -69,7 +76,22 @@ class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
               frame.getContentPane.setBackground(Color.WHITE)
 
               var svgPanel = new JSVGCanvas
-              svgPanel.loadSVGDocument(getClass.getClassLoader.getResource("fwapp/ui/logo.svg").toString())
+
+              var parser = XMLResourceDescriptor.getXMLParserClassName();
+              var f = new SAXSVGDocumentFactory(parser);
+              var uri = "http://www.example.org/diagram.svg";
+              var doc = f.createDocument(getClass.getClassLoader.getResource("fwapp/ui/logo.svg").toString()).asInstanceOf[SVGDocument];
+
+              svgPanel.setDocumentState(JSVGComponent.ALWAYS_DYNAMIC)
+              svgPanel.setSVGDocument(doc)
+              svgPanel.getSVGDocument.getElementById("bottom").setAttribute("style", "fill:red")
+              svgPanel.setDocumentState(JSVGComponent.ALWAYS_DYNAMIC)
+              //svgPanel.loadSVGDocument(getClass.getClassLoader.getResource("fwapp/ui/logo.svg").toString())
+
+              //svgPanel.lo
+              //svgPanel.loadSVGDocument(getClass.getClassLoader.getResource("fwapp/ui/logo.svg").toString())
+
+              //svgPanel.getSVGDocument
 
               frame.add(svgPanel, BorderLayout.CENTER)
 
@@ -92,15 +114,26 @@ class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
               frame.setVisible(true)
               centerOnScreen(frame)
 
+              Brain.onStarted {
+                //println("Started -> OK")
+                onSwingThreadLater {
+                  svgPanel.invalidate()
+                  svgPanel.getSVGDocument.getElementById("bottom").setAttribute("style", "fill:darkgreen")
+                  svgPanel.invalidate()
+                  svgPanel.repaint()
+
+                }
+              }
+
               // Shutdown hook
               //---------
               /*this.onShutdown {
                 onSwingThreadAndWait {
                   startupFrame.get.dispose()
-                   
+
                 }
               }*/
-              
+
               // Shutdown on Closing
               //------------
               sys.addShutdownHook {
@@ -118,6 +151,10 @@ class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
         }
 
     }
+  }
+
+  this.onStart {
+
   }
 
 }

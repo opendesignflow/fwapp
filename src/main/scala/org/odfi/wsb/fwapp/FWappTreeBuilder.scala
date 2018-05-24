@@ -32,6 +32,7 @@ import java.net.URLEncoder
 import scala.language.implicitConversions
 import org.odfi.wsb.fwapp.views.FWAppViewIntermediary
 import org.odfi.wsb.fwapp.navigation.NavigationRule
+import com.idyria.osi.wsb.webapp.http.message.HTTPRequest
 
 trait FWappTreeBuilder extends TLogSource {
 
@@ -60,6 +61,16 @@ trait FWappTreeBuilder extends TLogSource {
       this
     }
 
+    def post(cl: HTTPRequest => Unit): IWrapper[I] = {
+
+      fwappIntermediary.onPOST {
+        cl(_)
+      }
+      
+      stackBackToLastIntermediary
+      this
+    }
+
     def view[V <: FWappView](v: V): IWrapper[I] = {
       view(v.getClass)
     }
@@ -78,19 +89,19 @@ trait FWappTreeBuilder extends TLogSource {
     }
 
     /*  def uses(tree: IWrapper[I]) : I = {
-      
+
       //-- Derive Resource first, to make sure insertion in Intermediary tree can work with resources
       tree.fwappIntermediary.deriveFrom(this.fwappIntermediary.parentIntermediary.asInstanceOf[FWappIntermediary])
-      
+
       //-- Replace local intermediary with the one being used
       this.fwappIntermediary.parentIntermediary <= tree.fwappIntermediary
       this.fwappIntermediary.parentIntermediary -= this.fwappIntermediary
-      
+
       //-- Noew intermediary uses path
       tree.fwappIntermediary.basePath = this.fwappIntermediary.basePath
-      
-      
-      
+
+
+
      // this.fwappIntermediary <= tree.fwappIntermediary
       stackBackToLastIntermediary
       tree.fwappIntermediary
@@ -157,7 +168,7 @@ trait FWappTreeBuilder extends TLogSource {
     // Start Back with Stack at the beginning
     // Save current head first
     /*lastCurrentIntermediaryStack.push(fwappIntermediariesStack.head)
-    
+
     var topPath = fwappIntermediariesStack.head
     fwappIntermediariesStack.clear()
     fwappIntermediariesStack.push(topPath)*/
@@ -250,8 +261,6 @@ trait FWappTreeBuilder extends TLogSource {
   def view[V <: FWappView](v: V): Unit = {
     view(v.getClass)
   }
-  
-  
 
   // Intermediaries
   //-------------------

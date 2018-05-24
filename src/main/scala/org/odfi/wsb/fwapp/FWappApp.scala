@@ -98,6 +98,12 @@ trait FWappApp extends IndesignModule with org.odfi.wsb.fwapp.FWappTreeBuilder {
 
   }
   
+  def getHTTPListenPort = {
+    this.engine.network.connectors.collectFirst {
+      case http : HTTPConnector => http.port
+    }
+  }
+  
   def start = {
     IndesignPlatorm use this
     IndesignPlatorm.start

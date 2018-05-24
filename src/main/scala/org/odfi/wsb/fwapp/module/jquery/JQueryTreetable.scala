@@ -42,13 +42,30 @@ trait JQueryTreetable extends JQueryView {
 
   }
   
-  
+  /**
+   * Define id for current line
+   */
   def treeTableLineId(id:String) = {
     +@("data-tt-id" ->URLEncoder.encode(id,"UTF8"))
   }
   
+  /**
+   * Define Parent for current line
+   */
   def treeTableParent(id:String) = {
      +@("data-tt-parent-id" -> URLEncoder.encode(id,"UTF8"))
   }
 
+  def makeTreeTable = {
+    val tableId = currentNode.getId
+    
+    this.jqueryGenerateOnLoad("treetable-"+tableId) match {
+      case Some(generator) =>
+        generator.println(s"""$$("#$tableId").treetable({ expandable: true });""")
+        generator.close()
+      case None => 
+    }
+    
+  }
+  
 }

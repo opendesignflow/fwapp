@@ -22,7 +22,7 @@ package org.odfi.wsb.fwapp.lib.security.views
 
 import org.odfi.wsb.fwapp.views.LibraryView
 import org.odfi.wsb.fwapp.framework.FWAppFrameworkView
-import org.odfi.wsb.fwapp.lib.security.User
+import org.odfi.wsb.fwapp.lib.security.CommonSecurityUser
 import org.odfi.wsb.fwapp.lib.security.SecurityLibModule
 import com.idyria.osi.wsb.webapp.http.message.HTTPRequest
 
@@ -34,10 +34,10 @@ trait SecurityHelper {
   /**
    * Get user from session
    */
-  def securitySessionGetUser(request: Option[HTTPRequest]): Option[User] = {
+  def securitySessionGetUser(request: Option[HTTPRequest]): Option[CommonSecurityUser] = {
     request.get.getSession match {
-      case Some(session) if (session.hasValueOfNameAndType[User]("fwapp.lib.security.user")) =>
-        session[User]("fwapp.lib.security.user")
+      case Some(session) if (session.hasValueOfNameAndType[CommonSecurityUser]("fwapp.lib.security.user")) =>
+        session[CommonSecurityUser]("fwapp.lib.security.user")
       case other => None
     }
   }
@@ -45,15 +45,15 @@ trait SecurityHelper {
   /**
    * Get Login user from session
    */
-  def securitySessionGetLoginUser(request: Option[HTTPRequest]): Option[User] = {
+  def securitySessionGetLoginUser(request: Option[HTTPRequest]): Option[CommonSecurityUser] = {
     request.get.getSession match {
-      case Some(session) if (session.hasValueOfNameAndType[User]("fwapp.lib.security.loginUser")) =>
-        session[User]("fwapp.lib.security.loginUser")
+      case Some(session) if (session.hasValueOfNameAndType[CommonSecurityUser]("fwapp.lib.security.loginUser")) =>
+        session[CommonSecurityUser]("fwapp.lib.security.loginUser")
       case other => None
     }
   }
   
-  def securitySessionGetAndCleanLoginUser(request: Option[HTTPRequest]): Option[User] = {
+  def securitySessionGetAndCleanLoginUser(request: Option[HTTPRequest]): Option[CommonSecurityUser] = {
     securitySessionGetLoginUser(request) match {
       case Some(user) => 
         request.get.getSession.get.removeValue("fwapp.lib.security.loginUser")
@@ -64,7 +64,7 @@ trait SecurityHelper {
     }
   }
 
-  def securitySessionSetUser(request: Option[HTTPRequest], user: User): Unit = {
+  def securitySessionSetUser(request: Option[HTTPRequest], user: CommonSecurityUser): Unit = {
     request.get.getSession.get("fwapp.lib.security.user" -> user)
   }
 
@@ -73,13 +73,14 @@ trait SecurityHelper {
     case Some(user) =>
 
       //println(s"Saving USER")
-      SecurityLibModule.saveUser(user)
+      //SecurityLibModule.saveUser(user)
+      sys.error("REDESIGN")
 
     case other =>
       println(s"No user on session")
   }
   
-  def securitySessionSaveLoginUser(request: Option[HTTPRequest],user:User): User = {
+  def securitySessionSaveLoginUser(request: Option[HTTPRequest],user:CommonSecurityUser): CommonSecurityUser = {
     request.get.getSession match {
       case Some(session) =>
         session("fwapp.lib.security.loginUser" -> user)
@@ -89,10 +90,10 @@ trait SecurityHelper {
     user
   }
 
-  def securitySessionCreateUser(request: Option[HTTPRequest]): User = securitySessionGetUser(request) match {
+  /*def securitySessionCreateUser(request: Option[HTTPRequest]): CommonSecurityUser = securitySessionGetUser(request) match {
     case None =>
 
-      var user = User()
+      var user = CommonSecurityUser()
       request.get.getSession match {
         case Some(session) =>
           session("fwapp.lib.security.user" -> user)
@@ -100,10 +101,10 @@ trait SecurityHelper {
       }
       user
     case other => other.get
-  }
+  }*/
 
   /**
-   * Kick User from session
+   * Kick CommonSecurityUser from session
    */
   def securitySessionSignout(request: Option[HTTPRequest]): Unit = {
     request.get.getSession match {
@@ -141,24 +142,30 @@ trait SecurityView extends LibraryView with FWAppFrameworkView with SecurityHelp
       }
   }
 
+  // To Be Implemented
+  //-----------------------
+  def securitySessionCreateUser: CommonSecurityUser = {
+    sys.error("Not Implemented")
+  }
+  
   // Utilities, mapped from helper
   //---------------
 
   /**
    * Get user from session
    */
-  def securitySessionGetUser: Option[User] = securitySessionGetUser(request)
+  def securitySessionGetUser: Option[CommonSecurityUser] = securitySessionGetUser(request)
 
-  def securitySessionSetUser(user: User): Unit = {
+  def securitySessionSetUser(user: CommonSecurityUser): Unit = {
     request.get.getSession.get("fwapp.lib.security.user" -> user)
   }
 
   def securitySessionSaveUser: Unit = securitySessionSaveUser(request)
 
-  def securitySessionCreateUser: User = securitySessionCreateUser(request)
+  //def securitySessionCreateUser: CommonSecurityUser = securitySessionCreateUser(request)
 
   /**
-   * Kick User from session
+   * Kick CommonSecurityUser from session
    */
   def securitySessionSignout: Unit = securitySessionSignout(request)
   

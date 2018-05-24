@@ -32,6 +32,7 @@ import com.idyria.osi.ooxoo.core.buffers.structural.AbstractDataBuffer
 
 import fmacros.FWAppMacros
 import fmacros.FWAppValueBindingViewTrait
+import com.idyria.osi.vui.html.Input
 
 trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingViewTrait {
 
@@ -49,7 +50,7 @@ trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingVie
 
     var eventName = currentNode match {
       case t: Textarea[_, _] => "onchange"
-      case other => "onchange"
+      case other             => "onchange"
     }
 
     val bindSupportedTypes = List(classOf[Boolean], classOf[Long], classOf[Int], classOf[Integer], classOf[Double], classOf[Number], classOf[String], classOf[AbstractDataBuffer[_]])
@@ -145,7 +146,7 @@ trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingVie
 
               cl(v.asInstanceOf[V])
             case None =>
-              sys.error("Cannot run bind value action if value parameter is not set")
+              sys.error("Cannot run bind value action if value parameter is not set (should be: "+targetNode.attributes("name").toString+")")
           }
 
         }
@@ -194,7 +195,7 @@ trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingVie
       case None =>
         sys.error("Bind value on supports input types: " + bindSupportedTypes)
     }
-    
+
     cl
 
   }
@@ -202,50 +203,62 @@ trait FWAppValueBindingView extends FWAppFrameworkView with FWAppValueBindingVie
   // Utils
   //----------
   def inputBind[V: ClassTag](cl: V => Any) = {
-    input {
-      bindValue {
-        value: V => cl(value)
-      }
+    this.currentNode match {
+      case input: Input[_, _] =>
+
+        bindValue {
+          value: V => cl(value)
+        }
+        
+        input
+
+      case other =>
+        input {
+          bindValue {
+            value: V => cl(value)
+          }
+        }
     }
+
   }
 
   /**
    * List: (id -> OBJ)
    */
-  def selectFromObjects[T](lst: Iterable[(String,T)], current: String)(cl: T => Unit) = {
+  def selectFromObjects[T](lst: Iterable[(String, T)], current: String)(cl: T => Unit) = {
 
     var foundSelected = false
     select {
 
       var selectedFound = false
       lst.foreach {
-        case (value,obj) =>
+        case (value, obj) =>
 
           option(value) {
-            
+
             //-- Preselect
-            if (current!=null && (value == current)) {
+            if (current != null && (value == current)) {
               +@("selected" -> "true")
               selectedFound = true
             }
-            
+
             //-- Content value
             text(obj.toString)
           }
 
       }
-      
+
       //-- Add empty option
-      if(!selectedFound) {
+      if (!selectedFound) {
         option("") {
           +@("selected" -> "true")
           currentNode.moveToFirstChild
         }
       }
-      
+
       bindValue {
-        v : String => 
-          cl(lst.find { case (rv,obj) => rv==v}.get._2)
+        v: String =>
+          cl(lst.find { case (rv, obj) => rv == v }.get._2)
       }
     }
 

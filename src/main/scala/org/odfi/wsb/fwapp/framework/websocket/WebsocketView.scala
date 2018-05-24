@@ -86,7 +86,7 @@ trait WebsocketView extends FWAppFrameworkView {
       case Some(p) =>
         p.intermediaries.find {
           case i: WebsocketPathIntermediary => true
-          case i                            => false
+          case i => false
         } match {
           //-- Add Websocket intermediary
           case None =>
@@ -103,7 +103,6 @@ trait WebsocketView extends FWAppFrameworkView {
         }
       case None =>
     }
-  
 
   }
 
@@ -118,8 +117,11 @@ trait WebsocketView extends FWAppFrameworkView {
       case (Some(req), Some(wi)) =>
         wi.getInterface(req) match {
           case Some(interface) =>
-            interface.writeSOAPPayload(elt)
-            interface.nc.waitForInputPayload(1000)
+            interface.nc.synchronized {
+              interface.nc.inputPayloadsSemaphore.drainPermits()
+              interface.writeSOAPPayload(elt)
+              interface.nc.waitForInputPayload(5000)
+            }
           case None =>
             println(s"Sending Back message not possible, request and websocket intermediary (${wi.hashCode()}) set, but no WS interface for session: " + req.getSession)
         }
@@ -133,9 +135,10 @@ trait WebsocketView extends FWAppFrameworkView {
 
         wi.websocketPool.values.foreach {
           interface =>
-
-            interface.writeSOAPPayload(elt)
-            interface.nc.waitForInputPayload(1000)
+            interface.nc.synchronized {
+              interface.writeSOAPPayload(elt)
+              interface.nc.waitForInputPayload(5000)
+            }
 
           //println("Got input payload -> keep going")
         }

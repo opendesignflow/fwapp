@@ -35,25 +35,24 @@ trait LibraryView extends FWappView {
 
   var libraries = new LinkedHashMap[String, List[(Option[AssetsSource], HTMLNode[HTMLElement, Any]) => Any]]();
 
-
- var librariesPlaced = false
+  var librariesPlaced = false
   var librariesPlacedLocation: Option[HTMLNode[HTMLElement, _]] = None
 
   /*def addLibrary(cl: HTMLNode[HTMLElement, Any] => Any) = {
-    
+
   }*/
 
   def hasLibrary(name: String) = libraries.keySet.contains(name)
 
   def addLibrary(name: String)(cl: (Option[AssetsSource], HTMLNode[HTMLElement, Any]) => Any): Unit = {
 
-    //val  targetView = getTopViewOrSelfAs[LibraryView] 
+    //val  targetView = getTopViewOrSelfAs[LibraryView]
     val targetView = this
 
     //-- Look for list
     var closures = targetView.libraries.get(name) match {
       case Some(lst) => lst
-      case None      => List()
+      case None => List()
     }
 
     //-- Update
@@ -72,14 +71,14 @@ trait LibraryView extends FWappView {
     case Some(location) =>
 
       val scriptsAndStyle = location.children.filter {
-        case s: Script[_, _]     => s.hasAttribute("src")
+        case s: Script[_, _] => s.hasAttribute("src")
         case s: Stylesheet[_, _] => s.hasAttribute("href")
-        case other               => false
+        case other => false
       }
 
       // group by location and only keep one of duplicates
       scriptsAndStyle.groupBy {
-        case s: Script[_, _]     => s.attribute("src")
+        case s: Script[_, _] => s.attribute("src")
         case s: Stylesheet[_, _] => s.attribute("href")
       }.foreach {
         case (loc, nodes) => nodes.drop(1).foreach(_.detach)
@@ -136,7 +135,7 @@ trait LibraryView extends FWappView {
     } catch {
       case e: Throwable => e.printStackTrace()
     }
-   // println(s"done calling place libraries on: " + currentNode.hashCode() + " -> " + currentNode.children.size)
+    // println(s"done calling place libraries on: " + currentNode.hashCode() + " -> " + currentNode.children.size)
     librariesPlaced = true
   }
 
@@ -203,4 +202,16 @@ trait LibraryView extends FWappView {
     result
   }
 
+  
+  def defaultAssetsResolverScripts(base:String,paths:Iterable[String]) = {
+    paths.foreach {
+      p => 
+        
+        script(createAssetsResolverURI((base+p))) {
+          
+        }
+        
+    }
+  }
+  
 }

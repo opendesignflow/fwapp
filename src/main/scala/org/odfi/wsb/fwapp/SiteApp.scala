@@ -34,6 +34,7 @@ class DefaultSite(path:String) extends SwingPanelSite(path) {
   
    //-- Setup default assets
   val assetsManager = this.useDefaultAssets
+  
 
   //-- Setup default config
   //IndesignPlatorm use OOXOOConfigModule
@@ -101,6 +102,15 @@ class SiteApp(path: String) extends SwingPanelSite(path) with App {
 
 class DefaultSiteApp(path: String) extends DefaultSite(path) with App {
 
+  //-- Environment
+  val environment = args.find(_ == "--dev") match {
+    case Some(_) => "test"
+    case other => "production"
+  }
+  
+  
+  def isTestEnvironment = environment=="test"
+  
   //-- Setup default assets
  /* val assetsManager = this.useDefaultAssets
 

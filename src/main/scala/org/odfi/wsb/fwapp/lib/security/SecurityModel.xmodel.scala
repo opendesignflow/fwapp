@@ -25,8 +25,10 @@ import com.idyria.osi.ooxoo.model.producer
 import com.idyria.osi.ooxoo.model.producers
 import com.idyria.osi.ooxoo.model.out.markdown.MDProducer
 import com.idyria.osi.ooxoo.model.out.scala.ScalaProducer
+import com.idyria.osi.ooxoo.model.out.scala.JPAProducer
 
 @producers(Array(
+  new producer(value = classOf[JPAProducer]),
   new producer(value = classOf[ScalaProducer]),
   new producer(value = classOf[MDProducer])))
 object SecurityModel extends ModelBuilder {
@@ -37,15 +39,30 @@ object SecurityModel extends ModelBuilder {
     makeTraitAndUseCustomImplementation
 
     //-- ID
-    "ID" ofType("uuid")
-    
+    "ID" ofType ("uuid")
+
     //-- Attributes
-    "CreationDate" ofType("datetime")
-    "LastUpdate" ofType("datetime")
-    "Email" ofType("string")
+    "CreationDate" ofType ("datetime")
+    "LastUpdate" ofType ("datetime")
+    "Email" ofType ("string")
     
+    
+    //-- Authentication
+    "Authentication" is {
+      
+      "OTP" is {
+        "IsSealed" ofType("boolean")
+        "SealedHint" ofType("string")
+        "SharedKey" ofType("binary") // Password protected HMAC Shared Key
+        "HMAC" ofType("string")
+        "Digits" ofType("int")
+      }
+    }
+
     //-- Federated tokens
     "FederatedIdentity" multiple {
+      makeTraitAndUseCustomImplementation
+      withTrait("org.odfi.wsb.fwapp.lib.security.CommonFederatedIdentity")
       "Validity" ofType "datetime"
       "ProviderID" ofType "string"
       "Token" ofType "sha256string"

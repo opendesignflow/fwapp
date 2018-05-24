@@ -59,7 +59,20 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
 
   def getFirstIntermediary = this.findUpchainResource[FWappIntermediary]
 
+  /**
+   * Returns the top level Site
+   */
   def getApp = this.findUpchainResource[FWappIntermediary] match {
+    case Some(baseIntermediary) =>
+      baseIntermediary.findTopMostIntermediaryOfType[Site]
+    case None =>
+      None
+  }
+  
+  /**
+   * Returns the closes Site we are contained into
+   */
+  def getSite =  this.findUpchainResource[FWappIntermediary] match {
     case Some(baseIntermediary) =>
       baseIntermediary.findParentOfType[Site]
     case None =>
@@ -126,10 +139,14 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
 
   def createFullDomainURI(pathInput: String) = {
 
-    s"http://${request.get.getURLParameter("Host").get}${createAppURI(pathInput)}"
+    s"http://${request.get.getURLParameter("Host").get}${createSiteURI(pathInput)}"
 
   }
-  def createAppURI(pathInput: String) = {
+  
+  /**
+   * Create Site URI -> URI which maps correctely to current Site wherever it is or the main global app if requested
+   */
+  def createSiteURI(pathInput: String) = {
 
     pathInput match {
       //-- Start with http: -> external
@@ -138,7 +155,7 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
       case other =>
         val path = pathInput.replaceAll("//+", "/")
         //println("createAppURI for -> "+path)
-        var resLink = getApp match {
+        var resLink = getSite match {
 
           //-- Start with # , don't change
           case Some(site: Site) if (path.startsWith("#")) =>
@@ -166,10 +183,16 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
           case Some(site: Site) if (!path.startsWith("/")) =>
             //println("Path is relative")
             new URI(getViewPath + path)
+            
           case Some(site: Site) if (!path.startsWith(site.fullURLPath)) =>
+            
             // println("Path does not start with site base path: "+site.fullURLPath)
             new URI((site.fullURLPath + "/" + path).replaceAll("//+", "/"))
-          case other => new URI(path.replaceAll("//+", "/"))
+             
+          case other => 
+            
+             //println("Don't change uri parth: "+path)
+            new URI(path.replaceAll("//+", "/"))
         }
         //println("Result link: "+resLink)
         resLink
@@ -302,7 +325,7 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
   override def a(target: String)(cl: => Any) = {
 
     // println(s"OVERRIDEN A LINK")
-    super.a(createAppURI(target).toString())(cl)
+    super.a(createSiteURI(target).toString())(cl)
 
   }
 

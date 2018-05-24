@@ -26,11 +26,22 @@ import java.util.UUID
 import com.idyria.osi.ooxoo.core.buffers.datatypes.id.UUIDBuffer
 
 @xelement(name = "User")
-class User extends UserTrait {
+class User extends UserTrait with CommonSecurityUser {
 
+  // Parameters
+  //-----------------
+  def setEmail(str:String) = {
+    this.email = str
+  }
+  
+  def getEmail = this.email
+  
+  
   // ID and federation
   //------------------
 
+  def getUUID : String = this.ID.toString
+  
   /**
    * Find a valid Identity, and cleanup at the same time
    */
@@ -50,7 +61,7 @@ class User extends UserTrait {
 
   }
 
-  def federate(providerID: String, token: String) : UserTraitFederatedIdentity = synchronized {
+  def federate(providerID: String, token: String)  : Unit = synchronized {
 
     
     

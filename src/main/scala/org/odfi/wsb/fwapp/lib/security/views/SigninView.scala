@@ -112,7 +112,7 @@ trait SigninView extends SecurityView with NavigationUtilsView {
 
           //-- Create user
           var user = securitySessionCreateUser
-          user.email = verifiedEmail
+          user.setEmail(verifiedEmail)
 
           //-- Add Federated Identity
           user.federate(providerID, uuid)

@@ -24,6 +24,7 @@ $(function() {
 	fwapp.websocket.makeEventConnection();
 	fwapp.websocket.onPushData("SemanticProgressUpdate", function(payload) {
 		
+		console.log("Update Progress for: "+payload.TargetID+", to "+payload.Percent);
 		var tid = "#"+payload.TargetID;
 		$(tid).show();
 		$(tid).progress({
