@@ -52,109 +52,118 @@ import org.w3c.dom.svg.SVGSVGElement
 import org.apache.batik.dom.svg.SVGDocumentFactory
 import org.apache.batik.swing.svg.SVGDocumentLoader
 import org.apache.batik.anim.dom.SAXSVGDocumentFactory
+import java.awt.event.WindowAdapter
+import org.apache.batik.swing.svg.SVGDocumentLoaderAdapter
+import org.apache.batik.swing.svg.SVGDocumentLoaderEvent
 
 class SwingPanelSite(path: String) extends Site(path) with SwingUtilsTrait {
 
-  var disableGUI = false
-  var startupFrame: Option[JFrame] = None
+    var disableGUI = false
+    var startupFrame: Option[JFrame] = None
 
-  this.onInit {
-    GraphicsEnvironment.isHeadless() match {
-      case true =>
-      case false if (disableGUI) =>
-      case other =>
+    this.onInit {
+        GraphicsEnvironment.isHeadless() match {
+            case true                  =>
+            case false if (disableGUI) =>
+            case other =>
 
-        //frame.add(new JLabel(new ImageIcon(getClass.getClassLoader.getResource("fwapp/ui/logo.png"))), BorderLayout.CENTER)
+                //frame.add(new JLabel(new ImageIcon(getClass.getClassLoader.getResource("fwapp/ui/logo.png"))), BorderLayout.CENTER)
 
-        this.engine.network.connectors.foreach {
-          case hc: HTTPConnector =>
-            onSwingThreadLater {
+                this.engine.network.connectors.foreach {
+                    case hc: HTTPConnector =>
+                        onSwingThreadLater {
 
-              var frame = new JFrame()
-              startupFrame = Some(frame)
-              frame.setSize(600, 300)
-              frame.getContentPane.setBackground(Color.WHITE)
+                            var frame = new JFrame()
+                            startupFrame = Some(frame)
+                            frame.setSize(600, 300)
+                            frame.getContentPane.setBackground(Color.WHITE)
 
-              var svgPanel = new JSVGCanvas
+                            var svgPanel = new JSVGCanvas
+                            
+                            // Use Document Loading to start managing colors at the right time
+                            svgPanel.setDocumentState(JSVGComponent.ALWAYS_DYNAMIC)
+                            svgPanel.addSVGDocumentLoaderListener(new SVGDocumentLoaderAdapter() {
+                                override def documentLoadingCompleted(e: SVGDocumentLoaderEvent) = {
+                                    println("Document Loaded")
+                                    svgPanel.getSVGDocument.getElementById("bottom").setAttribute("style", "fill:red")
 
-              var parser = XMLResourceDescriptor.getXMLParserClassName();
-              var f = new SAXSVGDocumentFactory(parser);
-              var uri = "http://www.example.org/diagram.svg";
-              var doc = f.createDocument(getClass.getClassLoader.getResource("fwapp/ui/logo.svg").toString()).asInstanceOf[SVGDocument];
+                                    Brain.onStarted {
+                                        println("Started -> OK")
+                                        onSwingThreadLater {
 
-              svgPanel.setDocumentState(JSVGComponent.ALWAYS_DYNAMIC)
-              svgPanel.setSVGDocument(doc)
-              svgPanel.getSVGDocument.getElementById("bottom").setAttribute("style", "fill:red")
-              svgPanel.setDocumentState(JSVGComponent.ALWAYS_DYNAMIC)
-              //svgPanel.loadSVGDocument(getClass.getClassLoader.getResource("fwapp/ui/logo.svg").toString())
+                                            svgPanel.getSVGDocument.getElementById("bottom").setAttribute("style", "fill:darkgreen")
+                                            /*svgPanel.getUpdateManager.dispatchSVGZoomEvent()
+                                            svgPanel.getUpdateManager.getUpdateRunnableQueue.invokeAndWait(new Runnable {
+                                                def run = {
+                                                    svgPanel.getSVGDocument.getElementById("bottom").setAttribute("style", "fill:darkgreen")
+                                                }
+                                            })*/
 
-              //svgPanel.lo
-              //svgPanel.loadSVGDocument(getClass.getClassLoader.getResource("fwapp/ui/logo.svg").toString())
+                                        }
+                                    }
+                                }
+                            });
 
-              //svgPanel.getSVGDocument
+                            svgPanel.loadSVGDocument(getClass.getClassLoader.getResource("fwapp/ui/logo.svg").toString())
 
-              frame.add(svgPanel, BorderLayout.CENTER)
+                            frame.add(svgPanel, BorderLayout.CENTER)
 
-              var l = new JLabel(s"${getDisplayName} : http://localhost:${hc.port}${this.basePath}/")
-              l.setCursor(new Cursor(Cursor.HAND_CURSOR))
+                            var l = new JLabel(s"${getDisplayName} : http://localhost:${hc.port}${this.basePath}/")
+                            l.setCursor(new Cursor(Cursor.HAND_CURSOR))
 
-              l.setFont(new Font("Sans Serif", Font.BOLD, 22))
+                            l.setFont(new Font("Sans Serif", Font.BOLD, 22))
 
-              l.addMouseListener(new MouseAdapter {
-                override def mouseClicked(e: MouseEvent) = {
-                  if (Desktop.isDesktopSupported()) {
-                    Desktop.getDesktop.browse(new URI(s"http://localhost:${hc.port}${basePath}/"))
+                            l.addMouseListener(new MouseAdapter {
+                                override def mouseClicked(e: MouseEvent) = {
+                                    if (Desktop.isDesktopSupported()) {
+                                        Desktop.getDesktop.browse(new URI(s"http://localhost:${hc.port}${basePath}/"))
+                                    }
+                                }
+                            })
+                            frame.add(l, BorderLayout.SOUTH)
+
+                            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
+
+                            /*frame.addWindowListener( new WindowAdapter {
+                  override def windowClosing(e : WindowEvent) = {
+                      println(s"window closing")
+                      Brain.moveToShutdown
                   }
-                }
-              })
-              frame.add(l, BorderLayout.SOUTH)
+              })*/
 
-              frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
+                            frame.setVisible(true)
+                            centerOnScreen(frame)
 
-              frame.setVisible(true)
-              centerOnScreen(frame)
-
-              Brain.onStarted {
-                //println("Started -> OK")
-                onSwingThreadLater {
-                  svgPanel.invalidate()
-                  svgPanel.getSVGDocument.getElementById("bottom").setAttribute("style", "fill:darkgreen")
-                  svgPanel.invalidate()
-                  svgPanel.repaint()
-
-                }
-              }
-
-              // Shutdown hook
-              //---------
-              /*this.onShutdown {
+                            // Shutdown hook
+                            //---------
+                            /*this.onShutdown {
                 onSwingThreadAndWait {
                   startupFrame.get.dispose()
 
                 }
               }*/
 
-              // Shutdown on Closing
-              //------------
-              sys.addShutdownHook {
-                println("Shutdown hook")
-                moveToShutdown
-              }
-              /*frame.addWindowStateListener(new WindowStateListener {
+                            // Shutdown on Closing
+                            //------------
+                            sys.addShutdownHook {
+                                println("Shutdown hook")
+                                moveToShutdown
+                            }
+                            /*frame.addWindowStateListener(new WindowStateListener {
                 def windowStateChanged(ev: java.awt.event.WindowEvent) : Unit = {
                   if(ev.getNewState==WindowEvent.
                 }
               })*/
 
-            }
-          case other =>
+                        }
+                    case other =>
+                }
+
         }
+    }
+
+    this.onStart {
 
     }
-  }
-
-  this.onStart {
-
-  }
 
 }

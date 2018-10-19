@@ -50,6 +50,7 @@ class DefaultSite(path:String) extends SwingPanelSite(path) {
   }*/
 
   this.onLoad {
+     println("Loadding ooxoo config")
     requireModule(OOXOOConfigModule)
   }
   

@@ -43,29 +43,34 @@ import org.odfi.wsb.fwapp.framework.FWAppTempBufferView
 
 trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIImplView with AssetsGeneratorView with WebsocketView with FWAppTempBufferView {
 
+    var semanticVersion = "2.3"
+    
   this.addLibrary("semantic") {
     case (Some(source), target) =>
       onNode(target) {
-        stylesheet(createAssetsResolverURI(s"/semantic/semantic.min.css")) {
+        stylesheet(createAssetsResolverURI(s"/semantic-${semanticVersion}/semantic.min.css")) {
           +@("async" -> true)
         }
 
-        script(createAssetsResolverURI(s"/semantic/semantic.min.js")) {
+        script(createAssetsResolverURI(s"/semantic-${semanticVersion}/semantic.min.js")) {
           //+@("async" -> true)
         }
 
         script(createAssetsResolverURI(s"/fwapp/lib/semantic/semantic-progress.js")) {
           //+@("async" -> true)
         }
+        script(createAssetsResolverURI(s"/fwapp/lib/semantic/tablesort.js")) {
+          //+@("async" -> true)
+        }
       }
     case (None, target) =>
 
       onNode(target) {
-        stylesheet(createAssetsResolverURI(s"/fwapp/external/semantic/semantic.min.css")) {
+        stylesheet(createAssetsResolverURI(s"/fwapp/external/semantic-${semanticVersion}/semantic.min.css")) {
           +@("async" -> true)
         }
 
-        script(createAssetsResolverURI(s"/fwapp/external/semantic/semantic.min.js")) {
+        script(createAssetsResolverURI(s"/fwapp/external/semantic-${semanticVersion}/semantic.min.js")) {
           // +@("async" -> true)
         }
 
@@ -87,6 +92,24 @@ trait SemanticView extends LibraryView with FWAppFrameworkView with SemanticUIIm
 
     }
 
+  }
+  
+  // Labeling and Text
+  //--------------------
+  
+  /**
+   * Shortens text to provided length and set the full text in tooltip
+   * packs all in a span
+   */
+  def semanticShortTextTooltipFull(textStr:String,limit:Int) = {
+      if(textStr.length()<limit) {
+          text(textStr)
+      } else {
+          div {
+              text(textStr.take(limit)+"...")
+              +@("tooltip" -> textStr)
+          }
+      }
   }
 
   // Form validation

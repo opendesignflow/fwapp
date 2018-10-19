@@ -150,7 +150,7 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
 
     pathInput match {
       //-- Start with http: -> external
-      case external if (external.startsWith("http://")) =>
+      case external if (external.startsWith("http")) =>
         new URI(pathInput)
       case other =>
         val path = pathInput.replaceAll("//+", "/")
@@ -253,7 +253,7 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
   }
 
   def getViewPath = {
-    //println("Looking for First FwappIntermediary on "+getClass.getName+" -> "+parentResource)
+    println("Looking for First FwappIntermediary on "+getClass.getName+" -> "+parentResource)
     this.findUpchainResource[FWappIntermediary].get.fullURLPath
   }
 

@@ -37,6 +37,8 @@ $(function() {
 	$('.ui.accordion')
 	  .accordion()
 	;
+	
+	
 
 });
 

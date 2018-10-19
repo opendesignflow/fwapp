@@ -46,7 +46,9 @@ trait WebsocketUpdatesView extends WebsocketView {
     attrU.value = value
     attrU.name = name
     
-    this.sendSOAPBackendMessage(attrU)
+    this.broadCastSOAPBackendMessage(attrU)
   }
+  
+  
   
 }

@@ -24,11 +24,26 @@ $(function() {
 	fwapp.websocket.makeEventConnection();
 	fwapp.websocket.onPushData("UpdateAttribute",function(payload) {
 		
-		//console.log("Updating Attribute: "+payload.TargetID);
+		console.log("Updating Attribute 2: "+payload.TargetID+","+payload.Name+"//"+payload.Value);
 		
 		var target = $("#"+payload.TargetID);
 		if (target) {
-			target.attr(payload.Name,payload.Value);
+			if (target.is("input") && payload.Name=="value") {
+				
+				console.log("Updating Field Value");
+				
+				target.val(payload.Value);
+				
+			} else {
+				
+				console.log("Updating at "+target);
+				
+				target.attr(payload.Name,
+						payload.Value);
+			}
+			
+		} else {
+			console.log("Cannot find target element");
 		}
 		
 	});

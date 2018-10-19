@@ -34,87 +34,133 @@ import com.idyria.osi.tea.listeners.ListeningSupport
 
 class AssetsGenerator extends AssetsSource("/") {
 
- /// tlogEnableFull[AssetsGenerator]
-  
-  var generatedResources = Map[String, (String,GeneratedOutputStream)]()
+    /// tlogEnableFull[AssetsGenerator]
 
-  def generateFile(view: FWappView, name: String): GeneratedOutputStream = {
+    var generatedResources = Map[String, (String, GeneratedOutputStream)]()
+    var onRequestGeneratedResources = Map[String, (String, GeneratedOutputStream, GeneratedOutputStream => Unit)]()
 
-    //-- Create ID
-    var generatedId = HashUtils.hashBytesAsBase64((view.getUniqueId + name).getBytes, "MD5")
+    def generateFile(view: FWappView, name: String): GeneratedOutputStream = {
 
-    //-- Create Generator
-    var generator = new GeneratedOutputStream(generatedId)
+        //-- Create ID
+        var generatedId = HashUtils.hashBytesAsBase64((view.getUniqueId + name).getBytes, "MD5")
 
-    //-- Save with Name
-    generatedResources = generatedResources.updated(generatedId, (name,generator))
+        //-- Create Generator
+        var generator = new GeneratedOutputStream(generatedId)
 
-    logFine[AssetsGenerator](s"Registered resource $name under $generatedId")
-    
-    generator
+        //-- Save with Name
+        generatedResources = generatedResources.updated(generatedId, (name, generator))
 
-  }
+        logFine[AssetsGenerator](s"Registered resource $name under $generatedId")
 
-  this.onDownMessage {
-    req =>
+        generator
 
-      //-- Path is ID
-      //-- Remember it starts with "/ID" , so drop first character
-      var generatedId = URLDecoder.decode(req.path.drop(1), "US-ASCII")
-      
-      logFine[AssetsGenerator](s"Generated Resource: "+generatedId)
-     // var splited =  generatedId.split('.').filter(_.length()>0)
-     // var (generatedId,extension) =  (splited(0),splited.drop(1).mkString("."))
-      
-   
-      this.generatedResources.get(generatedId) match {
+    }
 
-        //-- Generator is closed so ready to go
-        case Some((name,generator)) if (generator.isClosed) =>
+    def generateOnRequest(view: FWappView, name: String,forceName:Boolean=false)(cl: GeneratedOutputStream => Unit) = {
 
-          var resp = HTTPResponse()
-          resp.content = ByteBuffer.wrap(generator.toByteArray())
-          resp.contentType = MimeTypes.nameToMime(name) match {
-            case Some(mime) => mime
-            case None => 
-              sys.error("Unsupported resource extension")
-          }
-          
-          response(resp,req)
-          
-        //-- Generator not closed
-        case Some(generator) =>
+        //-- Create ID
+        var generatedId = forceName match {
+            case true => name
+            case false => HashUtils.hashBytesAsBase64((view.getUniqueId + name).getBytes, "MD5")
+        }
 
-          var resp = HTTPResponse.c503
-          resp.setTextContent("The resource is generated, but the generator was not closed. Data might be incomplete, so returning an error")
+        //-- Create Generator
+        var generator = new GeneratedOutputStream(generatedId)
 
-          response(resp,req)
-        case None =>
-      }
-  }
+        //-- Save with Name
+        onRequestGeneratedResources = onRequestGeneratedResources.updated(generatedId, (name, generator, cl))
+
+        logFine[AssetsGenerator](s"Registered resource $name under $generatedId")
+
+        generator
+    }
+
+    this.onDownMessage {
+        req =>
+
+            //-- Path is ID
+            //-- Remember it starts with "/ID" , so drop first character
+            var generatedId = URLDecoder.decode(req.path.drop(1), "US-ASCII")
+
+            logFine[AssetsGenerator](s"Generated Resource: " + generatedId)
+            // var splited =  generatedId.split('.').filter(_.length()>0)
+            // var (generatedId,extension) =  (splited(0),splited.drop(1).mkString("."))
+
+            this.generatedResources.get(generatedId) match {
+
+                //-- Generator is closed so ready to go
+                case Some((name, generator)) if (generator.isClosed) =>
+
+                    var resp = HTTPResponse()
+                    resp.content = ByteBuffer.wrap(generator.toByteArray())
+                    resp.contentType = MimeTypes.nameToMime(name) match {
+                        case Some(mime) => mime
+                        case None =>
+                            sys.error("Unsupported resource extension")
+                    }
+
+                    response(resp, req)
+
+                //-- Generator not closed
+                case Some(generator) =>
+
+                    var resp = HTTPResponse.c503
+                    resp.setTextContent("The resource is generated, but the generator was not closed. Data might be incomplete, so returning an error")
+
+                    response(resp, req)
+
+                //-- Nothing found, try in the delayed
+                case None =>
+                    this.onRequestGeneratedResources.get(generatedId) match {
+                        case Some((name, generator, cl)) =>
+                            
+                            generator.reset()
+                            cl(generator)
+                            if (!generator.isClosed) {
+                                generator.close
+                            }
+                            var resp = HTTPResponse()
+                            resp.content = ByteBuffer.wrap(generator.toByteArray())
+                            resp.contentType = MimeTypes.nameToMime(name) match {
+                                case Some(mime) => mime
+                                case None =>
+                                    sys.error("Unsupported resource extension")
+                            }
+
+                            response(resp, req)
+                        case None =>
+                    }
+
+            }
+    }
 
 }
 
-class GeneratedOutputStream(val id:String) extends ByteArrayOutputStream with ListeningSupport {
+class GeneratedOutputStream(val id: String) extends ByteArrayOutputStream with ListeningSupport {
 
-  var printStream = new PrintStream(this)
-  
-  var isClosed = false
+    var printStream = new PrintStream(this)
 
-  def getURLId = URLEncoder.encode(id, "US-ASCII")
-  
-  override def close() = {
-    this.@->("close")
-    super.close()
-    isClosed = true
-  }
-  
-  def println(str:String) = this.printStream.println(str)
-  def print(str:String) = this.printStream.print(str)
+    var isClosed = false
 
-  // Events
-  def onClose(cl: => Unit) = {
-    this.on("close")(cl)
-  }
-  
+    def getURLId = URLEncoder.encode(id, "US-ASCII")
+
+    override def reset() = {
+        super.reset()
+        printStream = new PrintStream(this)
+    }
+    override def close() = {
+        this.@->("close")
+        super.close()
+        printStream.close()
+        isClosed = true
+    }
+
+    def println(str: String) = this.printStream.println(str)
+    def print(str: String) = this.printStream.print(str)
+
+    // Events
+    def onClose(cl: => Unit) = {
+        this.on("close")(cl)
+    }
+
 }
