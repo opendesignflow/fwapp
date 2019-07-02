@@ -175,6 +175,11 @@ trait FWAppFrameworkView extends JQueryView {
       data("fwapp-action-code" -> actioncode)
     }
   }
+  def buttonClickReloadConfirm(text:String,message:String)(cl: => Any) = {
+      val ri = buttonClickReload(text)(cl)
+     ri.attributeAppend("data-ui-confirm" -> message)
+      ri
+  }
 
   def buttonClick(text: String)(cl: => Any) = {
     button(text) {
@@ -200,6 +205,13 @@ trait FWAppFrameworkView extends JQueryView {
     }
   }
 
+  def iconClickReloadConfirm(message:String)(cl: => Any) = {
+      val ri = iconClickReload(cl)
+     ri.attributeAppend("data-ui-confirm" -> message)
+      ri
+  }
+  
+  
   /**
    * Returns the Action Code
    */
@@ -208,6 +220,11 @@ trait FWAppFrameworkView extends JQueryView {
     onClick(cl)
   }
 
+  def onClickReloadConfirm(message:String)(cl: => Any) = {
+     currentNode.attributeAppend("data-ui-confirm" -> message)
+     onClickReload(cl)
+  }
+  
   /**
    * Returns the Action Code
    */
