@@ -184,6 +184,7 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                       //-- All found, can proceed
                       case None =>
 
+                          println(s"Running action on last views: "+foundViews.size)
                         val targetView = foundViews.last.get
                         targetView.request = Some(req)
                         targetView.cleanActionResults
@@ -281,8 +282,23 @@ class FWAppViewIntermediary extends FWappIntermediary("/") {
                   //resp.content = ByteBuffer.wrap("".getBytes)
 
                   req.getURLParameter("_render") match {
-                    case Some("none") => 
+
+                    case Some("none") if( isJSONFormat) =>
+
+                      if (req.hasErrors==false) {
+                        resp.code = 200
+                        resp.contentType = "application/json"
+                        resp.content = ByteBuffer.wrap("{status: 'OK'}".getBytes)
+                      }
+
+                    case Some("none") =>
                       logInfo[FWAppViewIntermediary]("No render, returning action result?")
+
+                      if (req.hasErrors==false) {
+                        resp.code = 200
+                        resp.contentType = "text/plain"
+                        resp.content = ByteBuffer.wrap("".getBytes)
+                      }
                     
                     case other =>
                       logFine[FWAppViewIntermediary]("Rerender full")
