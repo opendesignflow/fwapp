@@ -33,6 +33,7 @@ import com.idyria.osi.ooxoo.core.buffers.datatypes.URIBuffer
 import java.net.URI
 import com.idyria.osi.ooxoo.core.buffers.datatypes.DoubleBuffer
 import com.idyria.osi.ooxoo.core.buffers.datatypes.LongBuffer
+import com.idyria.osi.ooxoo.core.buffers.structural.AbstractDataBuffer
 
 trait FWappResourceValueBindingView extends FWAppValueBufferView {
 
@@ -197,6 +198,34 @@ trait FWappResourceValueBindingView extends FWAppValueBufferView {
         val realInit = init.data
 
         inputBindAfterDelayInit(realInit)(500)(cl)
+    }
+    
+    def inputSelectToBuffer[T <:  AbstractDataBuffer[UT],UT](b:T,choices:List[UT],radio : Boolean = false)(implicit tag : ClassTag[UT]) = {
+        select {
+            choices.foreach {
+                choice => 
+                    option(choice.toString()) {
+                        text(choice.toString)
+                        
+                        if (choice.toString == b.toString) {
+                            +@("selected" -> true)
+                        }
+                    }
+            }
+            
+            bindValue  {
+                ip : UT => 
+                    println(s"Changing select")
+                    b.set(ip)
+            }
+        }
+    }
+    
+     def inputChoiceBoxToBuffer(b: XSDStringBuffer,choices:List[XSDStringBuffer]) = {
+        inputBindAfter500MSInit(b) {
+            str =>
+                b.set(str)
+        }
     }
 
 }
