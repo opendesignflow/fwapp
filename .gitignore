@@ -3,3 +3,5 @@ target/
 doc/build/
 config/
 **/*.scala_*
+indesign-config/
+*.iml
