@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 fwapp.actions = {
 
+
 	callViewAction : function(actionName,sendData,reload) {
 		
 		//-- Add action to send data
@@ -45,9 +46,31 @@ fwapp.actions = {
 		console.log("Call Action");
 		
 
+        // Confirmation
+        //--------------------
+        if ($(sender).data("ui-confirm")) {
+            console.log("Confirming...");
+            var deferred = fwapp.ui.confirm(sender,$(sender).data("ui-confirm"));
+            deferred.done(function() {
+                console.log("Finished confirming...");
+                fwapp.actions.callActionMain(sender,path,sendData);
+            });
+           
+
+
+        } else {
+            // Proceed
+            //--------------
+            fwapp.actions.callActionMain(sender,path,sendData);
+        }
+
+       
 		
 		
-		// Request parameters
+    },
+    
+    callActionMain : function(sender, path, sendData)  {
+        // Request parameters
 		//---------------
 		var responseFormat = "text";
 		sendData = sendData || {};
@@ -61,6 +84,7 @@ fwapp.actions = {
 			
 			console.info("Inside form: "+parentForm.serialize())
 			$.each(parentForm.serializeArray(),function(i, field) {
+			    console.log("From serialize: "+field.name);
 				sendData[field.name] = field.value;
 			});
 			//path = path+"&"+parentForm.serialize()
@@ -137,9 +161,13 @@ fwapp.actions = {
 		//-------------
 		console.info("Running action, sending remote request for " + path);
 		console.info("Send data is: " + JSON.stringify(sendData));
-		
+		console.info("Reload=" + reload);
+
 		
 		var deffered = $.post(path,sendData,jQuery.noop,responseFormat);
+		deffered.always(function() {
+		    console.log("Always...");
+		});
 		deffered.done(function(data) {
 
 			console.log("Done..." + JSON.stringify(data));
@@ -185,7 +213,7 @@ fwapp.actions = {
 			 */
 
 		});
-	},
+    },
 
 	bindValue : function(element, urlPath, sendData) {
 

@@ -37,7 +37,13 @@ fwapp.ui = {
 
 	enable : function(target) {
 		fwapp.ui.impl.enable(target);
-	},
+    },
+    
+    // Confirmation
+    //-----------------
+     confirm : function(target,message) {
+        return fwapp.ui.impl.confirm(target,message);
+     },
 
 	// Report Error and results
 	// --------------------

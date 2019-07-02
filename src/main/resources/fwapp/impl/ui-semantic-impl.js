@@ -78,6 +78,36 @@ fwapp.ui.impl = {
 		currentModal.modal('close');
 		//wait
 		currentModal = "";
-	}
+    },
+    
+    /**
+     * Returns a promise
+     */
+    confirm : function(target,message) {
+
+        var result = $.Deferred();
+
+        var html = $('<div class="ui modal"><div class="header">Confirmation</div><div class="content">'+message+'</div><div class="actions"><div class="ui black deny button">No</div><div class="ui positive button">Yes</div></div></div>')
+	
+		currentModal = $(html).modal({
+			blurring : true,
+            closable : false,
+            onDeny    : function(){
+                console.log("Reject");
+                result.reject();
+            },
+            onApprove : function() {
+                console.log("Ok");
+                result.resolve();
+               
+            }
+        }).modal('show');
+
+        console.log("Confirm shown");
+
+        return result;
+        
+        
+    }
 
 };
