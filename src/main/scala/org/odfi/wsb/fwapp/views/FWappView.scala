@@ -32,6 +32,7 @@ import org.odfi.wsb.fwapp.Site
 import scala.collection.convert.DecorateAsJava
 import scala.collection.convert.DecorateAsScala
 import scala.reflect.ClassTag
+import com.idyria.osi.wsb.webapp.mime.MimePart
 
 trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava with DecorateAsScala {
 
@@ -125,6 +126,13 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
         search(value)
       case None => None
     }
+  }
+  
+  def withRequestFilePart(name:String)(cl: MimePart => Unit) = {
+      request.get.getPartForFileName(name) match {
+          case Some(part) => cl(part)
+          case None => sys.error(s"Request required part with form data name $name does not exist")
+      }
   }
   
   def getURLValue(name:String,d:Int) = withRequestParameter(name) match {
@@ -253,7 +261,6 @@ trait FWappView extends BasicHTMLView with HarvestedResource with DecorateAsJava
   }
 
   def getViewPath = {
-    println("Looking for First FwappIntermediary on "+getClass.getName+" -> "+parentResource)
     this.findUpchainResource[FWappIntermediary].get.fullURLPath
   }
 
